@@ -568,6 +568,8 @@ function localSearch(q){
 }
 
 /* ================= settings / AI ================= */
+const LIVE_URL = 'https://leong0308.github.io/lu-isst-korfu/';
+const SANDBOXED = /claude\.ai$/.test(location.hostname) || location.protocol === 'file:';
 const LS = { get:(k,d)=>{ try { const v = localStorage.getItem(k); return v==null?d:v; } catch(e){ return d; } }, set:(k,v)=>{ try { localStorage.setItem(k,v); } catch(e){} }, del:k=>{ try{ localStorage.removeItem(k);}catch(e){} } };
 const MODELS = [['gpt-5.6-terra','Terra – ausgewogen (Standard)'],['gpt-5.6-luna','Luna – Sparmodus'],['gpt-5.6-sol','Sol – maximal schlau']];
 function settings(){ return { key: LS.get('lu_key',''), model: LS.get('lu_model','gpt-5.6-terra') }; }
@@ -616,6 +618,7 @@ const SEARCH_SCHEMA = {
 async function callAI(body){
   const s = settings();
   if (!s.key) throw new Error('NOKEY');
+  if (/claude\.ai$/.test(location.hostname)) throw new Error('In dieser Ansicht sind KI-Aufrufe gesperrt – bitte die App unter ' + LIVE_URL + ' öffnen.');
   const res = await fetch('https://api.openai.com/v1/responses', { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+s.key}, body: JSON.stringify(body) });
   if (!res.ok) { let msg = res.status+''; try { const j = await res.json(); msg = (j.error && j.error.message) || msg; } catch(e){} throw new Error(msg); }
   const j = await res.json();
@@ -836,6 +839,7 @@ function openSettings(){
   sheetBody.innerHTML = `
     <div class="sheet-top"><div class="grab" style="margin:0 auto"></div><button class="iconbtn" data-close aria-label="Schließen">${ICON.x}</button></div>
     <h2 style="font-family:var(--display);font-size:1.5rem;font-weight:800">Einstellungen</h2>
+    ${/claude\.ai$/.test(location.hostname)?`<div class="alert" style="margin-top:10px"><span>${ICON.warn}</span><span>In dieser Vorschau sind KI-Aufrufe gesperrt. Die vollständige App mit KI-Suche läuft unter <a href="${LIVE_URL}">leong0308.github.io/lu-isst-korfu</a>.</span></div>`:''}
     <p class="small muted" style="margin-top:6px">Die KI-Suche läuft direkt von diesem Gerät zu OpenAI. Der Schlüssel bleibt nur hier gespeichert (Browser-Speicher) und wird nirgendwo sonst hingeschickt.</p>
     <div class="field"><label for="key">OpenAI API-Schlüssel</label><input id="key" type="password" placeholder="sk-…" value="${esc(s.key)}" autocomplete="off" autocapitalize="off" spellcheck="false"></div>
     <div class="field"><label for="model">Modell</label><select id="model">${MODELS.map(([v,l])=>`<option value="${v}" ${v===s.model?'selected':''}>${l}</option>`).join('')}</select></div>
