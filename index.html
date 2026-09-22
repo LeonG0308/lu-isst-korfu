@@ -432,7 +432,7 @@ details.plain[open] summary::after{transform:rotate(225deg)}
   </div>
   <div class="panel">
     <h3>Der Lu &amp; Karla Score (1–5)</h3>
-    <p class="small" style="margin-top:6px">Wie gut passt ein Ort für euch beide? Er zählt zu zwei Dritteln, wie viel Lu dort <b>ohne Käse</b> essen kann (vegetarisch, kein Feta/Schafskäse/Parmesan – Kuh-Mozzarella ist ok), und zu einem Drittel, wie gut der Ort insgesamt bei Google bewertet ist.</p>
+    <p class="small" style="margin-top:6px">Wie gut passt ein Ort für euch beide? Er zählt zu zwei Dritteln, wie viel Lu dort <b>ohne Käse</b> essen kann (vegetarisch, kein Feta/Schafskäse/Parmesan – Mozzarella und Burger-Scheibenkäse sind ok), und zu einem Drittel, wie gut der Ort insgesamt bei Google bewertet ist.</p>
     <ul class="list-clean small" style="margin-top:8px">
       <li><b>5 – Volltreffer</b> Viele käsefreie Gerichte belegt, top bewertet.</li>
       <li><b>4 – Sehr gut</b> Mehrere sichere Gerichte, ein paar nur auf Nachfrage.</li>
@@ -442,7 +442,7 @@ details.plain[open] summary::after{transform:rotate(225deg)}
   </div>
   <div class="panel">
     <h3>Die Symbole an den Gerichten</h3>
-    <div class="legend" style="margin-top:6px"><span class="fl ok"><i>✓</i> Lu kann das essen (laut Karte kein Käse)</span><span class="fl ask"><i>?</i> Nur auf Nachfrage – Käse abbestellen oder Mozzarella-Sorte klären</span><span class="fl no"><i>–</i> Nichts für Lu: Fleisch, Fisch oder mit Käse</span></div>
+    <div class="legend" style="margin-top:6px"><span class="fl ok"><i>✓</i> Lu kann das essen (laut Karte kein Käse)</span><span class="fl ask"><i>?</i> Nur auf Nachfrage – Käse abbestellen oder Angabe unklar</span><span class="fl no"><i>–</i> Nichts für Lu: Fleisch, Fisch oder mit Käse</span></div>
   </div>
   <div class="panel">
     <h3>Woher die Daten kommen</h3>
@@ -479,7 +479,23 @@ const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt
 const eur = p => (p == null) ? '' : (Number(p).toFixed(2).replace('.', ',') + ' €');
 const safeUrl = u => (typeof u === 'string' && /^https?:\/\//i.test(u.trim())) ? u.trim() : null;
 const isPhone = () => matchMedia('(max-width:640px)').matches;
-const luOf = it => !it.veg ? 'no' : it.ch === 'none' ? 'safe' : (it.ch === 'contains' && /mozz|fior/i.test((it.ck||'') + ' ' + (it.d||''))) && !/feta|parmes|gouda|hallou|cheddar|graviera|kefalo|cream cheese/i.test(it.d||'') ? 'mozz' : it.ch === 'contains' ? 'cheese' : 'ask';
+const REAL_CHEESE = /feta|hallou|goat|ziegen|schaf|sheep|blue cheese|blauschimmel|gorgonzola|roquefort|parmes|grana|pecorino|brie|camembert|gouda|graviera|kefalo|manouri|mizithra|anthotyro|metsovone|talagani|paneer|ricotta|mascarpone|cream cheese|frischk|philadelphia|burrata|bufala|buffalo|saganaki|edam|emmental|formaggi|tiropita|cheese sauce|cheesy|kaesesauce|käsesauce/i;
+const BURGER_CHEESE = /cheddar|american|scheibletten|processed|schmelz|burger cheese|cheese slice/i;
+// Lu: kein Käse – außer Mozzarella und dem Scheibenkäse auf Burgern
+const luOf = it => {
+  if (!it.veg) return 'no';
+  if (it.ch === 'none') return 'safe';
+  const txt = (it.ck||'') + ' ' + (it.d||'') + ' ' + (it.dd||'') + ' ' + it.n + ' ' + (it.de||'');
+  const isBurger = /burger/i.test(it.n + ' ' + (it.de||''));
+  if (isBurger && !REAL_CHEESE.test(txt)) return 'safe';
+  if (it.ch === 'contains') {
+    if (REAL_CHEESE.test(txt)) return 'cheese';
+    if (/mozz|fior di latte/i.test(txt)) return 'mozz';
+    if (isBurger || BURGER_CHEESE.test(txt)) return 'safe';
+    return 'cheese';
+  }
+  return 'ask';
+};
 const DAYS = ['Mo','Di','Mi','Do','Fr','Sa','So'];
 const DAYS_LONG = ['Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag','Sonntag'];
 const ICON = {
@@ -498,7 +514,7 @@ const ICON = {
   speak:'<svg class="i" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/></svg>',
   bus:'<svg class="i" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="15" rx="3"/><path d="M4 11h16M8 18v2M16 18v2"/><circle cx="8" cy="14.5" r="1" fill="currentColor"/><circle cx="16" cy="14.5" r="1" fill="currentColor"/></svg>'
 };
-const FL = {safe:'<i class="fl-i ok" title="Lu kann das essen">✓</i>', mozz:'<i class="fl-i ask" title="Nur auf Nachfrage">?</i>', ask:'<i class="fl-i ask" title="Nur auf Nachfrage">?</i>', cheese:'<i class="fl-i no" title="Nichts für Lu">–</i>', no:'<i class="fl-i no" title="Nichts für Lu">–</i>'};
+const FL = {safe:'<i class="fl-i ok" title="Lu kann das essen">✓</i>', mozz:'<i class="fl-i ok" title="Mit Mozzarella – für Lu ok">✓</i>', ask:'<i class="fl-i ask" title="Nur auf Nachfrage">?</i>', cheese:'<i class="fl-i no" title="Nichts für Lu">–</i>', no:'<i class="fl-i no" title="Nichts für Lu">–</i>'};
 const style = document.createElement('style'); style.textContent = '.fl-i{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:6px;font-size:.72rem;font-weight:800;font-style:normal;margin-top:1px}.fl-i.ok{background:var(--good-soft);color:var(--good-ink)}.fl-i.ask{background:var(--amber-soft);color:var(--amber-ink)}.fl-i.no{background:var(--surface-2);color:var(--muted)}'; document.head.appendChild(style);
 
 /* ================= time (Europe/Athens) ================= */
@@ -523,10 +539,10 @@ function openState(r, t){
 }
 
 /* ================= derived ================= */
-const DRINK = /\b(shake|juice|cooler|coffee|tea|lemonade|water|cola|coke|beer|wine|cocktails?|mocktails?|caipir\w*|colada|punch|smoothie|frapp\w*|freddo|soda|milk|espresso|cappuccino|latte|mojito|spritz|ouzo|tsipouro|raki|gin|vodka|rum|whisk\w*|liqueur|lassi|chai|beverages?|drinks?|saft|säfte|kaffee|limonade|bier|wein|tee)\b/i;
+const DRINK = /\b(shake|juice|cooler|coffee|tea|lemonade|water|cola|coke|beer|beers|wine|wines|cocktails?|mocktails?|caipir\w*|colada|punch|smoothie|frapp\w*|freddo|soda|milk|espresso|cappuccino|latte|mojito|spritz|ouzo|tsipouro|raki|gin|vodka|rum|whisk\w*|liqueur|lassi|chai|beverages?|drinks?|saft|säfte|kaffee|limonade|bier|wein|tee|cider|cidre|ale|lager|stout|pils|pilsner|weizen|radler|mythos|alfa|heineken|amstel|corona|strongbow|rekorderlig|magners|kopparberg|prosecco|champagne|sangria|metaxa|brandy|shots?|spirits?|aperol|campari|bacardi|baileys|tequila|sambuca|limoncello|mastiha|retsina|sparkling)\b/i;
 // Speisen, die zufällig wie ein Getränk klingen (Schokolade enthält "cola", Weißweinsauce "wine" …)
 const NOT_DRINK = /\b(cake|kuchen|torte|sauce|sauce[ns]?|so(ss|ß)e|salad|salat|steak|fillet|filet|risotto|pasta|pizza|soup|suppe|chocolate|schokolade|shrimps?|prawns?|garnelen?|dessert|eis|ice cream|sorbet|mousse|pie|tart|creme|crème|pudding|butter|braten|gulasch|wrap|sandwich|toast)\b/i;
-const DRINK_SEC = /drink|getr|coffee|kaffee|beverage|wine|wein|beer|bier|cocktail|mocktail|spirit|shake|juice|smoothie|alcohol|soft drink|cooler|\bbar\b|tee\b/i;
+const DRINK_SEC = /drink|getr|coffee|kaffee|beverage|wine|wein|beer|bier|cider|cocktail|mocktail|spirit|shake|juice|smoothie|alcohol|soft drink|cooler|\bbar\b|tee\b|liqueur|likör|ouzo|aperitif|digestif|champagne|prosecco|schnaps|shots/i;
 const DESSERT = /ice cream|gelato|sorbet|cake|dessert|baklava|halva|pancake|crepe|crêpe|waffle|tiramisu|cheesecake|pie$|souffl|mousse|brownie|loukoum|kataifi|galaktob|yogurt with honey|yoghurt with honey|fruit salad|kulfi|gulab|kuchen|eis\b/i;
 const DESSERT_SEC = /\bdessert|\bsweet|\bsüß|\bice cream|\bgelato|\bsorbet|\bnachspeise|\bkuchen|\beis\b|\bnachtisch/i;
 const SIDE = /^add |^extra|^bread|pita bread|pitta bread|^pita$|^pitta$|olives|^fries|french fries|^chips|tzatziki|\bdip\b|sauce|butter|^rice$|plain rice|pulao|pilaf rice|papad|chapati|^naan|^nan\b|^garlic nan|paratha|toast$|^jam|honey$|ketchup|mayo|portion of|side of|bread basket|per person|^brot|pommes|beilage/i;
@@ -553,8 +569,8 @@ R.forEach((r, i) => {
   r.menu.forEach((it, j) => { it.id = j; it.rid = i; const secName = it.sde || it.s || ''; const nm = it.n + ' ' + (it.de||'');
     it.drink = (DRINK.test(nm) && !NOT_DRINK.test(nm)) || (DRINK_SEC.test(secName) && !NOT_DRINK.test(nm)); it.dessert = DESSERT.test(it.n) || (DESSERT_SEC.test(secName) && !/kind|kids|child|men[uü]/i.test(secName)); it.side = SIDE.test(it.n) || SIDE.test(it.de||''); it.main = MAIN3.test(it.n) || MAIN3.test(it.de||'') ? 3 : MAIN2.test(it.n) || MAIN2.test(it.de||'') ? 2 : (MAIN1.test(it.n) || MAIN3.test(it.d||'')) ? 1 : 0; it.lu = luOf(it); if (it.lu==='safe' && /hack|fleisch|mince|meat/i.test(it.note||'')) it.lu = 'ask'; });
   r.food = r.menu.filter(it => !it.drink);
-  r.safe = r.food.filter(it => it.lu === 'safe');
-  r.ask = r.food.filter(it => it.lu === 'ask' || it.lu === 'mozz');
+  r.safe = r.food.filter(it => it.lu === 'safe' || it.lu === 'mozz');
+  r.ask = r.food.filter(it => it.lu === 'ask');
   r.safeMains = r.safe.filter(it => !it.dessert && !it.side && !/kids|kinder|children|breakfast|frühstück/i.test((it.sde||'')+' '+(it.s||''))).sort((a,b) => (b.main - a.main) || ((b.p||0) - (a.p||0)));
   const agent = Math.max(1, Math.min(5, Math.round(r.suitability || 2)));
   r.menuUsable = r.food.length >= 10;
@@ -606,203 +622,298 @@ const HOW = {
   'Ausflug':'Tagesausflug: Küstenbus S5 (Mo–Sa) oder Taxi – abends nur mit Taxi zurück. Details im Tab „Praktisch“ › Bus & Taxi.'
 };
 
-/* ================= synonyms & search ================= */
+/* ================= Suche v6: Konzepte mit UND ================= */
 const SYN = {
-  kartoffelbrei:['mashed potato','mashed potatoes','potato puree','kartoffelpüree','skordalia'], kartoffelpüree:['mashed potato','mashed potatoes','kartoffelbrei','skordalia'],
-  kartoffel:['potato','patates','kartoffel'], kartoffeln:['potato','potatoes','kartoffel'], pommes:['fries','chips','pommes'], ofenkartoffel:['jacket potato','baked potato','oven potatoes','ofenkartoffel'],
-  nudeln:['pasta','spaghetti','linguine','penne','tagliatelle','noodles','nudeln','gnocchi','ravioli'], pasta:['pasta','spaghetti','linguine','penne','tagliatelle','gnocchi','ravioli','pappardelle'],
-  pizza:['pizza','margherita','margarita','marinara','focaccia'], burger:['burger'], veggieburger:['veggie burger','vegetable burger','vegan burger','gemüseburger'],
-  pilze:['mushroom','mushrooms','pilze','champignon','funghi'], pilz:['mushroom','pilz','funghi'], champignons:['mushroom','champignon','funghi'],
-  aubergine:['aubergine','eggplant','melitzan'], auberginen:['aubergine','eggplant','melitzan'], zucchini:['zucchini','courgette','kolokith'],
-  bohnen:['beans','gigantes','fasolakia','bohnen'], riesenbohnen:['gigantes','giant beans','riesenbohnen'], kichererbsen:['chickpea','chickpeas','hummus','channa','chana','kichererbse'], linsen:['lentil','lentils','dal','linsen','fava'],
-  reis:['rice','risotto','pilaf','biryani','reis','kritharotto'], risotto:['risotto','kritharotto'],
-  salat:['salad','salat'], gemüse:['vegetable','vegetables','briam','grilled vegetables','gemüse','veggie'], ofengemüse:['briam','roasted vegetables','ofengemüse'],
-  suppe:['soup','suppe'], tomatensuppe:['tomato soup','tomatensuppe'],
-  gemista:['gemista','stuffed tomatoes','stuffed peppers','yemista','gefüllte tomaten','gefüllte paprika'], gefüllt:['stuffed','gemista','gefüllt'], weinblätter:['vine leaves','dolmad','weinblätter'], dolmades:['dolmad','vine leaves','weinblätter'],
-  hummus:['hummus','houmous','humus'], falafel:['falafel'], tzatziki:['tzatziki'], fava:['fava'],
-  curry:['curry','masala','korma','dal','saag','aloo','gobi','bhindi','vindi','jalfrezi','biryani','balti','tikka'], indisch:['indian','curry','masala','naan','samosa','pakora','dal','indisch','tandoori','biryani'], inder:['indian','curry','indisch'],
-  mexikanisch:['mexican','tex-mex','burrito','fajita','taco','nachos','quesadilla','enchilada','mexikanisch'], burrito:['burrito'], fajitas:['fajita','fajitas'], tacos:['taco','tacos'],
+  kartoffelbrei:['mashed potato','mashed potatoes','potato puree','potato purée','kartoffelpüree','skordalia','potato mash'], kartoffelpüree:['mashed potato','mashed potatoes','kartoffelbrei','skordalia','potato mash'],
+  kartoffel:['potato','potatoes','patates','kartoffel'], kartoffeln:['potato','potatoes','kartoffel'], pommes:['fries','chips','pommes','french fries'], ofenkartoffel:['jacket potato','baked potato','oven potatoes','ofenkartoffel'],
+  nudeln:['pasta','spaghetti','linguine','penne','tagliatelle','noodles','nudeln','gnocchi','ravioli','pappardelle','fettuccine','makkaroni','macaroni'], pasta:['pasta','spaghetti','linguine','penne','tagliatelle','gnocchi','ravioli','pappardelle','fettuccine','lasagne','nudeln'],
+  pizza:['pizza','pizzen','margherita','margarita','marinara','calzone'], burger:['burger','burgers','hamburger','cheeseburger','bifteki'], veggieburger:['veggie burger','vegetable burger','vegan burger','gemüseburger','bean burger','falafel burger'],
+  pilze:['mushroom','mushrooms','pilze','pilz','champignon','champignons','funghi','manitaria'], pilz:['mushroom','mushrooms','pilz','pilze','funghi','champignon'], champignons:['mushroom','mushrooms','champignon','champignons','funghi','pilze'],
+  aubergine:['aubergine','aubergines','eggplant','melitzan','melanzane'], auberginen:['aubergine','eggplant','melitzan','melanzane'], zucchini:['zucchini','courgette','courgettes','kolokith'],
+  bohnen:['beans','gigantes','fasolakia','bohnen','fasolia'], riesenbohnen:['gigantes','giant beans','riesenbohnen'], kichererbsen:['chickpea','chickpeas','hummus','channa','chana','kichererbse','revithia'], linsen:['lentil','lentils','dal','daal','linsen','fakes'],
+  reis:['rice','risotto','pilaf','pilau','biryani','reis','kritharotto'], risotto:['risotto','risotti','kritharotto','orzotto'],
+  salat:['salad','salads','salat','salate','horiatiki'], gemüse:['vegetable','vegetables','veggies','briam','gemüse','lachanika'], ofengemüse:['briam','roasted vegetables','ofengemüse','baked vegetables'],
+  suppe:['soup','soups','suppe','suppen','soupa'], tomatensuppe:['tomato soup','tomatensuppe'],
+  gemista:['gemista','stuffed tomatoes','stuffed peppers','yemista','gefüllte tomaten','gefüllte paprika','stuffed vegetables'], gefüllt:['stuffed','gemista','gefüllt'], weinblätter:['vine leaves','dolmad','weinblätter','dolmades'], dolmades:['dolmad','vine leaves','weinblätter'],
+  hummus:['hummus','houmous','humus','humous'], falafel:['falafel','falafels'], tzatziki:['tzatziki','tsatsiki'], fava:['fava'],
+  curry:['curry','curries','masala','korma','saag','jalfrezi','balti','tikka','dhansak','vindaloo','madras','bhuna'], indisch:['indian','indisch','curry','masala','naan','samosa','pakora','dal','tandoori','biryani'],
+  mexikanisch:['mexican','tex-mex','burrito','fajita','taco','nachos','quesadilla','enchilada','mexikanisch'], burrito:['burrito','burritos'], fajitas:['fajita','fajitas'], tacos:['taco','tacos'],
   chinesisch:['chinese','noodles','sweet and sour','spring roll','chinesisch'], asiatisch:['asian','noodles','soy','wok','asiatisch'], frühlingsrollen:['spring roll','spring rolls','frühlingsroll'],
   italienisch:['italian','pizza','pasta','italienisch'], griechisch:['greek','taverna','griechisch'],
-  crêpe:['crepe','crêpe','pancake'], crepes:['crepe','crêpe'], pfannkuchen:['pancake','pancakes','crepe','pfannkuchen'], waffeln:['waffle','waffles','waffel'],
-  eis:['ice cream','gelato','sorbet','kulfi','eis'], sorbet:['sorbet'], kuchen:['cake','pie','tart','kuchen','portokalopita','karidopita'], schokolade:['chocolate','schokolade','nutella','praline'],
-  dessert:['dessert','cake','baklava','halva','loukoumades','ice cream','sweet'], süßes:['dessert','sweet','cake','chocolate','ice cream','baklava','kuchen','eis','süß','waffle','pancake'], süß:['dessert','sweet','cake','chocolate','ice cream','süß'], nachtisch:['dessert','cake','ice cream','baklava','nachtisch'],
-  baklava:['baklava'], halva:['halva','halvas'], loukoumades:['loukoumades','honey balls'],
-  frühstück:['breakfast','omelette','omelet','pancake','toast','eggs','frühstück','brunch'], omelett:['omelette','omelet'], eier:['eggs','egg','omelette','eier'], ei:['egg','eggs'], toast:['toast','sandwich'],
-  brot:['bread','pita','garlic bread','bruschetta','brot'], knoblauchbrot:['garlic bread','knoblauchbrot'], pita:['pita','pitta'],
+  crêpe:['crepe','crepes','crêpe','crêpes','pancake'], crepes:['crepe','crêpe','crepes'], pfannkuchen:['pancake','pancakes','crepe','crêpe','pfannkuchen'], waffeln:['waffle','waffles','waffel'],
+  eis:['ice cream','icecream','gelato','sorbet','kulfi','eis','pagoto'], sorbet:['sorbet'], kuchen:['cake','cakes','pie','tart','kuchen','torte','portokalopita','karidopita','ravani'], schokolade:['chocolate','schokolade','schoko','nutella','praline','brownie'],
+  dessert:['dessert','desserts','cake','baklava','halva','loukoumades','ice cream','sweet','nachtisch','nachspeise'], süßes:['dessert','sweet','cake','chocolate','ice cream','baklava','kuchen','eis','süß','waffle','pancake'], süß:['dessert','sweet','cake','chocolate','ice cream','süß'], nachtisch:['dessert','cake','ice cream','baklava','nachtisch'],
+  baklava:['baklava','baklavas'], halva:['halva','halvas'], loukoumades:['loukoumades','honey balls','loukoumathes'],
+  frühstück:['breakfast','frühstück','brunch'], omelett:['omelette','omelet','omelett','omelets','omelettes'], eier:['eggs','egg','eier','ei'], toast:['toast','toasts','toastie','sandwich'],
+  brot:['bread','pita','garlic bread','bruschetta','brot'], knoblauchbrot:['garlic bread','knoblauchbrot'], pita:['pita','pitta','pitas'],
   käse:['cheese','feta','halloumi','saganaki','parmesan','mozzarella','käse'], mozzarella:['mozzarella','caprese'],
-  fisch:['fish','sea bass','sea bream','calamari','squid','octopus','prawn','shrimp','salmon','sardine','tuna','fisch','dorade','wolfsbarsch','lachs'], meeresfrüchte:['seafood','prawn','shrimp','mussel','calamari','octopus','meeresfrüchte','garnele'], garnelen:['prawn','prawns','shrimp','shrimps','garnele'], tintenfisch:['calamari','squid','octopus','tintenfisch'], oktopus:['octopus','oktopus'], lachs:['salmon','lachs'],
-  fleisch:['meat','pork','beef','lamb','chicken','souvlaki','gyros','kebab','steak','fleisch'], hähnchen:['chicken','hähnchen','huhn'], huhn:['chicken','huhn'], schwein:['pork','schwein'], rind:['beef','steak','rind'], lamm:['lamb','lamm'], steak:['steak','rib-eye','fillet'], souvlaki:['souvlaki','skewer','spieß'], gyros:['gyros'], kebab:['kebab','souvlaki'], moussaka:['moussaka','mousaka'], pastitsio:['pastitsio'], stifado:['stifado'], kleftiko:['kleftiko'], sofrito:['sofrito'], pastitsada:['pastitsada'],
-  cocktail:['cocktail','mojito','aperol','spritz'], cocktails:['cocktail'], wein:['wine','wein'], bier:['beer','bier'], kaffee:['coffee','freddo','cappuccino','espresso','kaffee'], smoothie:['smoothie','juice'], saft:['juice','saft'],
-  vegan:['vegan'], vegetarisch:['vegetarian','vegetable','vegetarisch','veggie'], scharf:['spicy','chilli','chili','scharf'], leicht:['salad','soup','grilled vegetables','salat','suppe','joghurt'],
-  spinat:['spinach','spanak','spinat'], tomaten:['tomato','tomatoes','tomate','napoli','napolitana'], tomate:['tomato','tomate','napoli'], tomatensauce:['tomato sauce','napoli','napolitana','marinara','arrabbiata','tomatensauce'],
-  avocado:['avocado','guacamole'], paprika:['pepper','peppers','paprika'], knoblauch:['garlic','skordalia','knoblauch'], oliven:['olives','olive','oliven'], zwiebeln:['onion','onions','zwiebel'], erbsen:['peas','arakas','erbsen'], okra:['okra','bamies','bhindi','vindi'], mais:['corn','sweetcorn','mais'], nüsse:['nuts','walnut','almond','nuss'], honig:['honey','honig'], joghurt:['yoghurt','yogurt','tzatziki','joghurt'],
-  gnocchi:['gnocchi'], lasagne:['lasagne','lasagna'], carbonara:['carbonara'], bolognese:['bolognese'], napoli:['napolitana','napoli','tomato sauce','tomatensauce'], pesto:['pesto'], aglio:['aglio','garlic oil'],
-  kinder:['kids','children','kinder'], snack:['snack','toast','sandwich','club','wrap'], sandwich:['sandwich','club','baguette','toast'], wrap:['wrap','tortilla','pita'], nachos:['nachos'], quesadilla:['quesadilla'], chili:['chilli','chili'],
-  griechischersalat:['greek salad','horiatiki','bauernsalat'], bauernsalat:['greek salad','horiatiki','bauernsalat'], gebacken:['baked','oven','fournou','ofen'], gegrillt:['grilled','grill','scharas','gegrillt'], frittiert:['fried','tiganit','frittiert']
+  fisch:['fish','sea bass','sea bream','calamari','squid','octopus','prawn','shrimp','salmon','sardine','tuna','fisch','dorade','wolfsbarsch','lachs','swordfish','cod'], meeresfrüchte:['seafood','prawn','shrimp','mussel','calamari','octopus','meeresfrüchte','garnele'], garnelen:['prawn','prawns','shrimp','shrimps','garnele','garnelen'], tintenfisch:['calamari','squid','octopus','tintenfisch'], oktopus:['octopus','oktopus'], lachs:['salmon','lachs'],
+  fleisch:['meat','pork','beef','lamb','chicken','souvlaki','gyros','kebab','steak','fleisch'], hähnchen:['chicken','hähnchen','huhn','kotopoulo'], huhn:['chicken','huhn'], schwein:['pork','schwein'], rind:['beef','steak','rind'], lamm:['lamb','lamm'], steak:['steak','steaks','rib-eye','fillet'], souvlaki:['souvlaki','skewer','spieß','souvlakia','kalamaki'], gyros:['gyros','gyro'], kebab:['kebab','souvlaki'], moussaka:['moussaka','mousaka','moussakas'], pastitsio:['pastitsio','pasticcio'], stifado:['stifado'], kleftiko:['kleftiko'], sofrito:['sofrito'], pastitsada:['pastitsada'],
+  cocktail:['cocktail','cocktails','mojito','aperol','spritz'], cocktails:['cocktail','cocktails'], wein:['wine','wein'], bier:['beer','bier'], kaffee:['coffee','freddo','cappuccino','espresso','kaffee','latte'], smoothie:['smoothie','smoothies'], saft:['juice','saft','juices'],
+  spinat:['spinach','spanak','spinat'], tomaten:['tomato','tomatoes','tomate','tomaten'], tomate:['tomato','tomate'], tomatensauce:['tomato sauce','napoli','napolitana','marinara','arrabbiata','tomatensauce','tomatensoße','pomodoro'],
+  avocado:['avocado','guacamole'], paprika:['pepper','peppers','paprika'], knoblauch:['garlic','skordalia','knoblauch'], oliven:['olives','olive','oliven'], zwiebeln:['onion','onions','zwiebel'], erbsen:['peas','arakas','erbsen'], okra:['okra','bamies','bhindi','vindi'], mais:['corn','sweetcorn','mais'], nüsse:['nuts','walnut','almond','nuss'], honig:['honey','honig'], joghurt:['yoghurt','yogurt','joghurt'],
+  gnocchi:['gnocchi'], lasagne:['lasagne','lasagna'], carbonara:['carbonara'], bolognese:['bolognese','bolognaise'], napoli:['napolitana','napoli','tomato sauce'], pesto:['pesto'], aglio:['aglio','garlic oil'],
+  kinder:['kids','children','kinder'], snack:['snack','snacks','toast','sandwich','club','wrap'], sandwich:['sandwich','sandwiches','club','baguette','toast'], wrap:['wrap','wraps','tortilla'], nachos:['nachos'], quesadilla:['quesadilla'], chili:['chilli','chili'],
+  griechischersalat:['greek salad','horiatiki','bauernsalat'], bauernsalat:['greek salad','horiatiki','bauernsalat'], gebacken:['baked','oven','fournou','ofen'], gegrillt:['grilled','grill','scharas','gegrillt'], frittiert:['fried','tiganit','frittiert'],
+  ananas:['pineapple','ananas'], sardellen:['anchovy','anchovies','sardellen'], thunfisch:['tuna','thunfisch'], schinken:['ham','prosciutto','schinken'], salami:['salami','pepperoni'], kapern:['capers','kapern'], peperoni:['pepperoni','peperoni'], rucola:['rocket','rucola','arugula'], basilikum:['basil','basilikum'], trüffel:['truffle','tartufo','trüffel'], spargel:['asparagus','spargel'], artischocken:['artichoke','artichokes','artischocken'], brokkoli:['broccoli','brokkoli'], kürbis:['pumpkin','kürbis'], feigen:['fig','figs','feigen'], walnüsse:['walnut','walnuts','walnüsse'], mandeln:['almond','almonds','mandeln'], zimt:['cinnamon','zimt'], vanille:['vanilla','vanille'], karamell:['caramel','karamell'], erdbeeren:['strawberry','strawberries','erdbeeren'], mango:['mango'], kokos:['coconut','kokos'], zitrone:['lemon','zitrone'], orange:['orange'], ricotta:['ricotta'],
+  bruschetta:['bruschetta','bruschette'], omelette:['omelette','omelet'], waffel:['waffle','waffles'], schnitzel:['schnitzel'],
+  // feste Phrasen – Wörter ohne Leerzeichen zusammengesetzt (so werden sie in der Anfrage erkannt)
+  greeksalad:['greek salad','horiatiki','bauernsalat','griechischer salat','village salad'], griechischesalat:['greek salad','horiatiki','bauernsalat','griechischer salat'],
+  garlicbread:['garlic bread','knoblauchbrot'], springrolls:['spring roll','spring rolls','frühlingsroll'], springroll:['spring roll','spring rolls','frühlingsroll'],
+  tomatosoup:['tomato soup','tomatensuppe'], vegetablesoup:['vegetable soup','gemüsesuppe'], gemüsesuppe:['vegetable soup','gemüsesuppe'],
+  veganburger:['vegan burger','veggie burger','vegetable burger','gemüseburger'], vegetableburger:['vegetable burger','veggie burger','vegan burger'],
+  mushroomrisotto:['mushroom risotto','pilzrisotto','risotto funghi','risotto ai funghi'], pilzrisotto:['mushroom risotto','pilzrisotto','risotto funghi','risotto ai funghi'],
+  beanstoast:['beans on toast'], fishchips:['fish and chips','fish & chips'], fishandchips:['fish and chips','fish & chips'],
+  stuffedvineleaves:['vine leaves','dolmad','weinblätter'], gefülltewinblätter:['vine leaves','dolmad','weinblätter'],
+  clubsandwich:['club sandwich','club'], frenchfries:['french fries','fries','chips','pommes'], icecream:['ice cream','gelato','eis'],
+  friedpotatoes:['fried potatoes','pommes','fries'], bakedpotato:['baked potato','jacket potato','ofenkartoffel'], jacketpotato:['jacket potato','baked potato','ofenkartoffel']
 };
 const norm = s => String(s||'').toLowerCase().replace(/ä/g,'ae').replace(/ö/g,'oe').replace(/ü/g,'ue').replace(/ß/g,'ss').normalize('NFD').replace(/[̀-ͯ]/g,'');
-const STOP_W = new Set(['ich','wir','hab','habe','haben','haette','haetten','lust','auf','was','etwas','irgendwas','gern','gerne','bock','mag','moechte','will','wollen','heute','abend','abends','mittag','mittags','jetzt','bitte','mit','und','oder','ein','eine','einen','einem','ne','nen','bisschen','gibt','es','wo','kann','man','essen','zum','zu','am','im','in','der','die','das','den','dem','nach','fuer','richtig','gut','gutes','leckeres','lecker','so','mal','doch','heut','vielleicht','eher','lieber','gerade','grad','noch','irgendwo','naehe','uns','beide','karla','carla','lu','wuerde','irgendwie','einfach','hunger','moeglich','moeglichst','bei','von','vom']);
-const MEAT_Q = /^(gyros|souvlaki|meat|pork|beef|lamb|chicken|steak|kebab|fish|prawn|prawns|shrimp|shrimps|calamari|squid|octopus|salmon|tuna|sea bass|sea bream|bacon|ham|sausage|fleisch|fisch|garnele|lachs|huhn|haehnchen|schwein|rind|lamm|wurst|schinken|speck|seafood|meeresfruechte|mussel|sardine|dorade|wolfsbarsch|tintenfisch|oktopus|stifado|kleftiko|pastitsada|sofrito|bourdeto|moussaka|pastitsio|carbonara|bolognese|rib-eye|fillet|spiess|skewer)$/;
-const CHEESE_Q = /^(greek salad|horiatiki|bauernsalat|saganaki|halloumi|feta|cheese|kaese|caprese|parmesan|tiropita|cheesecake|quattro formaggi|mozzarella|burrata|paneer)$/;
-const DESSERT_Q = /^(dessert|sweet|cake|chocolate|ice cream|gelato|sorbet|crepe|pancake|baklava|halva|halvas|loukoumades|honey balls|kuchen|eis|suess|nachtisch|schokolade|waffle|waffles|waffel|pie|tart|kulfi|tiramisu|cheesecake)$/;
-const DRINK_Q = /^(cocktail|juice|coffee|beer|wine|drink|smoothie|shake|lemonade|tea|freddo|cappuccino|espresso|spritz|mojito|kaffee|saft|bier|wein|getraenk|cola|wasser|water|ouzo|raki)$/;
+const STOP_W = new Set(['ich','wir','hab','habe','haben','haette','haetten','lust','auf','was','etwas','irgendwas','gern','gerne','bock','mag','moechte','will','wollen','heute','abend','abends','mittag','mittags','jetzt','bitte','mit','und','oder','ein','eine','einen','einem','einer','eines','ne','nen','bisschen','gibt','es','wo','kann','man','essen','zum','zu','am','im','in','der','die','das','den','dem','des','nach','fuer','richtig','gut','gutes','leckeres','lecker','so','mal','doch','heut','vielleicht','eher','lieber','gerade','grad','noch','irgendwo','naehe','uns','beide','karla','carla','lu','wuerde','irgendwie','einfach','hunger','moeglich','moeglichst','bei','von','vom','ist','sind','haben','habt','ihr','sie','er','wie','wer','wann','hier','dort','da','the','a','an','some','something','i','we','want','would','like','please','for','with','and','or','to','of','at']);
+/* Attribute: Eigenschaften, die über die Flags geprüft werden – nicht über Text */
+const ATTR_WORDS = {vegetarisch:'vegetarian',vegetarian:'vegetarian',vegetarische:'vegetarian',vegetarischer:'vegetarian',vegetarisches:'vegetarian',veggie:'vegetarian',vegi:'vegetarian',fleischlos:'vegetarian',vegan:'vegan',vegane:'vegan',veganer:'vegan',veganes:'vegan',
+  suess:'sweet',suesses:'sweet',dessert:'sweet',desserts:'sweet',nachtisch:'sweet',nachspeise:'sweet',sweet:'sweet',sweets:'sweet',
+  getraenk:'drink',getraenke:'drink',trinken:'drink',drink:'drink',drinks:'drink',
+  scharf:'spicy',scharfes:'spicy',spicy:'spicy',hot:'spicy',
+  leicht:'light',leichtes:'light',light:'light',
+  warm:'warm',warmes:'warm',heiss:'warm',heisses:'warm',
+  kalt:'cold',kaltes:'cold',cold:'cold',
+  kaesefrei:'cheese_free',cheesefree:'cheese_free',
+  hauptgericht:'main',hauptgerichte:'main',hauptspeise:'main',hauptspeisen:'main',main:'main',mains:'main',essen:'main',gericht:'main',gerichte:'main'};
+const INGREDIENT_WORDS = new Set(['pilze','pilz','champignons','champignon','tomaten','tomate','spinat','aubergine','auberginen','zucchini','paprika','kichererbsen','linsen','bohnen','avocado','oliven','knoblauch','zwiebeln','zwiebel','erbsen','okra','mais','nuesse','honig','joghurt','schokolade','banane','bananen','erdbeere','erdbeeren','zitrone','mango','kokos','kartoffel','kartoffeln','reis','kaese','mozzarella','feta','ei','eier','trueffel','artischocken','artischocke','brokkoli','blumenkohl','karotten','moehren','rote bete','rucola','basilikum','pesto','curry','kraeuter','gemuese','mushroom','mushrooms','tomato','spinach','eggplant','chickpeas','lentils','beans','garlic','onion','peas','corn','nuts','honey','chocolate','banana','potato','potatoes','rice','cheese','egg','eggs','truffle','artichoke','broccoli','carrot','pumpkin','kuerbis','fava','tofu','seitan','lachs','garnelen','fisch','fleisch','haehnchen','huhn','rind','schwein','lamm','hackfleisch','ananas','sardellen','thunfisch','schinken','salami','kapern','peperoni','rucola','basilikum','trueffel','spargel','brokkoli','kuerbis','feigen','walnuesse','mandeln','zimt','vanille','karamell','erdbeeren','kokos','zitrone','orange','pineapple','anchovy','anchovies','tuna','ham','prosciutto','capers','rocket','basil','asparagus','fig','walnut','almond','lemon','caramel','strawberry','coconut','cinnamon','vanilla']);
+const CUISINE_WORDS = {griechisch:'Griechisch',griechisches:'Griechisch',greek:'Griechisch',italienisch:'Italienisch (Pizza & Pasta)',italienisches:'Italienisch (Pizza & Pasta)',italian:'Italienisch (Pizza & Pasta)',italiener:'Italienisch (Pizza & Pasta)',indisch:'Indisch',indisches:'Indisch',indian:'Indisch',inder:'Indisch',mexikanisch:'Mexikanisch',mexikanisches:'Mexikanisch',mexican:'Mexikanisch',mexikaner:'Mexikanisch',asiatisch:'Asiatisch',asiatisches:'Asiatisch',asian:'Asiatisch',chinesisch:'Asiatisch',chinese:'Asiatisch',thai:'Asiatisch',britisch:'Britisch & Pub',british:'Britisch & Pub',englisch:'Britisch & Pub',pub:'Britisch & Pub',international:'International',mediterran:'International',fischrestaurant:'Fisch & Meeresfrüchte',grillhaus:'Grill & Souvlaki',cafe:'Café, Eis & Kuchen',café:'Café, Eis & Kuchen',eisdiele:'Café, Eis & Kuchen',bar:'Bar & Cocktails',cocktailbar:'Bar & Cocktails'};
 
 function growTerm(w, set){
   set.add(w);
   const base = w.replace(/(en|er|es|e|s|n)$/,'');
   let exact = false;
   Object.keys(SYN).forEach(k => { const nk = norm(k); if (nk === w || nk === base) { exact = true; SYN[k].forEach(t => set.add(norm(t))); } });
-  if (!exact) Object.keys(SYN).forEach(k => { const nk = norm(k); if (w.length > 4 && nk.length > 3 && (nk.startsWith(w) || w.startsWith(nk))) SYN[k].forEach(t => set.add(norm(t))); });
+  if (!exact) Object.keys(SYN).forEach(k => { const nk = norm(k); if (w.length > 4 && nk.length > 3 && Math.abs(w.length - nk.length) <= 3 && (nk.startsWith(w) || w.startsWith(nk))) SYN[k].forEach(t => set.add(norm(t))); });
 }
-// One group per concept the user named. AND between groups, OR inside a group.
-function expand(q){
+const KNOWN = w => { const b = w.replace(/(en|er|es|e|s|n)$/,''); return !!ATTR_WORDS[w] || INGREDIENT_WORDS.has(w) || INGREDIENT_WORDS.has(b) || Object.keys(SYN).some(k => { const nk = norm(k); return nk === w || nk === b; }); };
+/* Zusammengesetzte Wörter (Schokoladenkuchen, Pilzrisotto, Gemüsesuppe) in zwei Konzepte teilen */
+function splitCompound(w){
+  if (KNOWN(w) || w.length < 8) return null;
+  for (let i = 4; i <= w.length - 4; i++) {
+    const right = w.slice(i);
+    for (const joint of ['', 'n', 'en', 's', 'e']) {
+      const left = w.slice(0, i);
+      if (!left.endsWith(joint)) continue;
+      const l = left.slice(0, left.length - joint.length);
+      if (l.length >= 3 && KNOWN(l) && KNOWN(right)) return [l, right];
+    }
+  }
+  return null;
+}
+/* Lokale Anfrage-Analyse (ohne KI): jedes Wort wird zu einem Konzept */
+function understandLocal(q){
   const raw = norm(q).replace(/[^a-z0-9\s-]/g,' ').split(/\s+/).filter(Boolean);
-  const excl = new Set(); let neg = false; const words = [];
-  raw.forEach(w => { if (['ohne','kein','keine','keinen','nicht'].includes(w)) { neg = true; return; } if (STOP_W.has(w) || w.length <= 2) return; if (neg) { excl.add(w); neg = false; } else words.push(w); });
-  const groups = words.map(w => { const s = new Set(); growTerm(w, s); return [...s]; });
-  if (words.length > 1) { const joined = words.join(''); Object.keys(SYN).forEach(k => { if (norm(k) === joined) groups.push(SYN[k].map(norm)); }); }
-  const exterms = new Set(); [...excl].forEach(w => growTerm(w, exterms));
-  return {words, groups, excl:[...exterms]};
+  const concepts = [], exclude = [];
+  let neg = false;
+  const words = [];
+  raw.forEach(w => {
+    if (['ohne','kein','keine','keinen','without','no'].includes(w)) { neg = true; return; }
+    if (STOP_W.has(w) || w.length <= 2) return;
+    if (neg) { neg = false;
+      if (w === 'kaese' || w === 'cheese' || w === 'feta') { concepts.push({kind:'attribute', attr:'cheese_free', label:'ohne Käse'}); return; }
+      if (/^(fleisch|meat|fisch|fish|wurst|schinken|speck|bacon|ham|huhn|haehnchen|chicken|schwein|pork|rind|beef|lamm|lamb|garnelen|prawns|shrimps|seafood|meeresfruechte)$/.test(w)) { if (!concepts.some(c => c.attr === 'vegetarian')) concepts.push({kind:'attribute', attr:'vegetarian', label:'ohne Fleisch & Fisch'}); return; }
+      const s = new Set(); growTerm(w, s); exclude.push(...s); return; }
+    words.push(w);
+  });
+  // Phrasen wie "griechischer salat" als eigenes Konzept
+  const joined = words.join('');
+  const phrase = Object.keys(SYN).find(k => words.length > 1 && norm(k) === joined);
+  if (phrase) { concepts.push({kind:'dish', terms: SYN[phrase].map(norm), label: phrase}); return {concepts, exclude, vague:false, words}; }
+  const expanded = [];
+  words.forEach(w => { const sp = splitCompound(w); if (sp) expanded.push(...sp); else expanded.push(w); });
+  expanded.forEach(w => {
+    if (ATTR_WORDS[w]) { concepts.push({kind:'attribute', attr: ATTR_WORDS[w], label: w}); return; }
+    if (CUISINE_WORDS[w]) { concepts.push({kind:'cuisine', kitchen: CUISINE_WORDS[w], terms:[w], label: w}); return; }
+    const s = new Set(); growTerm(w, s);
+    const base = w.replace(/(en|er|es|e|s|n)$/,'');
+    const kind = (INGREDIENT_WORDS.has(w) || INGREDIENT_WORDS.has(base)) ? 'ingredient' : 'dish';
+    concepts.push({kind, terms:[...s], label: w});
+  });
+  return {concepts, exclude, vague: concepts.length === 0 || concepts.every(c => c.kind === 'attribute' && ['light','warm','cold'].includes(c.attr)), words};
 }
-// Merge the AI's concept groups in; each AI term also gets our own synonyms.
-function mergeAI(base, ai){
-  if (!ai || !Array.isArray(ai.groups) || !ai.groups.length) return base;
-  const groups = ai.groups.filter(g => Array.isArray(g) && g.length).map(g => { const s = new Set(); g.forEach(t => growTerm(norm(t), s)); return [...s]; });
-  if (!groups.length) return base;
-  const excl = new Set(base.excl); (ai.exclude||[]).forEach(t => growTerm(norm(t), excl));
-  return {words: base.words, groups, excl:[...excl], ai:true};
+/* KI-Antwort in dieselbe Struktur bringen; eigene Synonyme dazu, damit nichts verloren geht */
+function understandAI(q, ai){
+  const loc = understandLocal(q);
+  if (!ai || !Array.isArray(ai.concepts) || !ai.concepts.length) return loc;
+  const concepts = ai.concepts.filter(c => c && c.kind).map(c => {
+    const lab = norm(c.label||''); const tn = (c.terms||[]).map(t => norm(t));
+    if ((c.kind === 'dish' || c.kind === 'ingredient') && (ATTR_WORDS[lab] || (tn.length && tn.every(t => ATTR_WORDS[t])))) return {kind:'attribute', attr: ATTR_WORDS[lab] || ATTR_WORDS[tn[0]], label: c.label || lab};
+    const s = new Set(); (c.terms||[]).forEach(t => growTerm(norm(t), s));
+    const out = {kind: c.kind, terms:[...s], label: c.label || (c.terms||[])[0] || c.attr || ''};
+    if (c.kind === 'attribute') out.attr = c.attr;
+    if (c.kind === 'cuisine') { out.kitchen = CUISINE_WORDS[norm(c.label||'')] || CUISINE_WORDS[norm((c.terms||[])[0]||'')] || null; }
+    return out;
+  }).filter(c => c.kind === 'attribute' ? !!c.attr : c.kind === 'cuisine' ? (c.kitchen || c.terms.length) : c.terms.length)
+    .filter((c, i, arr) => c.kind !== 'attribute' || arr.findIndex(x => x.kind === 'attribute' && x.attr === c.attr) === i);
+  if (!concepts.length) return loc;
+  // Attribut-Konzepte der lokalen Analyse behalten (z. B. "ohne Käse"), falls die KI sie vergisst
+  loc.concepts.filter(c => c.kind === 'attribute' && !concepts.some(x => x.kind === 'attribute' && x.attr === c.attr)).forEach(c => concepts.push(c));
+  const exclude = new Set(loc.exclude); (ai.exclude||[]).forEach(t => growTerm(norm(t), exclude));
+  if ([...exclude].some(x => /^(fleisch|meat|fisch|fish|chicken|pork|beef|lamb|bacon|ham|sausage|seafood|prawn|prawns|shrimp|shrimps)$/.test(x)) && !concepts.some(c => c.attr === 'vegetarian')) concepts.push({kind:'attribute', attr:'vegetarian', label:'ohne Fleisch & Fisch'});
+  return {concepts, exclude:[...exclude], vague: !!ai.vague, words: loc.words, ai:true};
 }
 
 const ZONE_W = {'Zu Fuß':1, 'Roda':.9, 'Acharavi':.65, 'Korfu-Stadt':.3, 'Ausflug':.3};
 const escRe = x => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const hay = (h, x) => h.includes(x) && (x.length > 5 || new RegExp('(^|[^a-z])' + escRe(x) + '($|[^a-z])').test(h));
-const NOTVEGAN = /(^|[^a-z])(ei|eier|egg|eggs|joghurt|yogurt|yoghurt|honig|honey|butter|sahne|cream|milch|milk|tzatziki|omelet|omelett|omelette|mayo|mayonnaise)($|[^a-z])/;
-// "Pita vegetarisch (ohne Fleisch)" darf bei der Suche "ohne Fleisch" nicht rausfliegen
+const NOTVEGAN = /(^|[^a-z])(ei|eier|egg|eggs|joghurt|yogurt|yoghurt|honig|honey|butter|sahne|cream|milch|milk|tzatziki|omelet|omelett|omelette|mayo|mayonnaise|kaese|cheese|feta|mozzarella|halloumi)($|[^a-z])/;
 const negated = (h, x) => { let i = h.indexOf(x); while (i >= 0) { if (!/\b(ohne|without|choris|kein|keine|keinen|no|frei von)\b[^a-z]{0,12}$/.test(h.slice(Math.max(0, i-18), i))) return false; i = h.indexOf(x, i + 1); } return true; };
 const excluded = (list, n, d) => list.some(x => (hay(n, x) && !negated(n, x)) || (hay(d, x) && !negated(d, x)));
-
-/* Finds EVERY matching dish on every menu. Nothing is capped or dropped for display. */
-function runSearch(q, ai){
-  const base = expand(q);
-  const E = mergeAI(base, ai);
-  const {groups, excl} = E;
-  if (!groups.length) return {hits:[], empty:true, E};
+const luOK = it => it.lu === 'safe' || it.lu === 'mozz';
+const luMaybe = it => it.lu === 'ask';
+const SPICY = /(^|[^a-z])(spicy|scharf|chilli|chili|hot|piquant|pikant|jalape|vindaloo|madras|diavol)/;
+const LIGHT = /(^|[^a-z])(salad|salat|soup|suppe|vegetable|gemuese|grilled|gegrillt|yog|joghurt|fruit|obst|hummus|tzatziki|melitzan|bruschetta|carpaccio)/;
+const COLD = /(^|[^a-z])(salad|salat|cold|kalt|ice|eis|sorbet|carpaccio|tartar|gazpacho|tzatziki|hummus|dip|bruschetta|sandwich|wrap|smoothie)/;
+function attrOK(it, attr, n, d, sn){
+  switch (attr) {
+    case 'main': return !it.side && !it.drink && !it.dessert && (it.main >= 3 || !/(starter|vorspeise|appetizer|antipast|meze|dip|salad|salat|side|beilage|bread|brot|snack|sandwich|toast|breakfast|fruehstueck|brunch|kids|kinder|children|dessert|drink|getraenk|extra|sauce|sossen|soup|suppe)/.test(sn));
+    case 'vegetarian': return !!it.veg;
+    case 'vegan': return !!it.vg || (!!it.veg && it.lu === 'safe' && !NOTVEGAN.test(n + ' ' + d));
+    case 'cheese_free': return !!it.veg && (it.lu === 'safe' || it.lu === 'mozz');
+    case 'sweet': return !!it.dessert && !/(menu|menue|gaenge|course|set )/.test(n);
+    case 'drink': return !!it.drink;
+    case 'spicy': return SPICY.test(n + ' ' + d + ' ' + sn);
+    case 'light': return !it.drink && !it.dessert && !it.side && LIGHT.test(n + ' ' + sn);
+    case 'warm': return !it.drink && !it.dessert && !it.side && !COLD.test(n + ' ' + sn);
+    case 'cold': return !it.drink && COLD.test(n + ' ' + sn);
+    default: return true;
+  }
+}
+// Ist der Suchbegriff der Kern des Gerichts ("Skordalia (…)") oder nur Beilage ("Würstchen mit Kartoffelbrei")?
+const headOf = txt => norm(txt).split(/\s(mit|with|and|auf|on|in|served)\s|[,&(]|\s-\s/)[0];
+const inHead = (it, x) => hay(headOf(it.n), x) || hay(headOf(it.de || ''), x);
+const secKey = it => norm(((it.s||'') + ' | ' + (it.sde||'')).replace(/\([^)]*\)/g, ' ').replace(/\b(served with|with|mit|inkl\.?|including)\b.*?(\||$)/g, ' '));
+/* Ein Gericht passt nur, wenn JEDES Konzept erfüllt ist */
+function matchItem(it, concepts, excl, flags){
+  const n = norm(it.n + ' ' + (it.de||'')), d = norm((it.d||'') + ' ' + (it.dd||'')), sn = secKey(it);
+  const secSingle = !/[&\/,+]| and | und | oder | or /.test(sn.replace(/\|/g, ' '));
+  if (excl.length && excluded(excl, n, d)) return null;
+  if (flags.exMeat && it.meat) return null;
+  if (flags.exFish && it.fish) return null;
+  if (flags.exCheese && it.veg && !(it.lu === 'safe' || it.lu === 'mozz')) return null;
+  let sc = 0, inName = false, inSec = false, dTerm = '', comp = false;
+  for (const c of concepts) {
+    if (c.kind === 'cuisine') continue;
+    if (c.kind === 'attribute') { if (!attrOK(it, c.attr, n, d, sn)) return null; sc += 1; continue; }
+    let best = 0, bn = false, bs = false, bd = '', bh = false;
+    for (const x of c.terms) {
+      if (x === 'beer' && /ginger beer/.test(n)) continue;
+      const w = x.includes(' ') ? 4 : x.length > 4 ? 3 : 2;
+      if (hay(n, x)) { if (w > best || !bn) { best = Math.max(best, w); } bn = true; if (inHead(it, x)) bh = true; }
+      else if (secSingle && hay(sn, x)) { if (!bn) best = Math.max(best, 1.5); bs = true; }
+      else if (c.kind === 'ingredient' && hay(d, x)) { if (!bn && !bs) best = Math.max(best, w * 0.6); if (!bd) bd = x; }
+    }
+    if (!bn && !bs && !bd) return null;
+    if (c.kind === 'dish' && bn && !bh && !bs) comp = true; // Begriff steht im Namen, aber nur als Beilage/Zusatz
+    sc += best; if (bn) inName = true; if (bs) inSec = true; if (!bn && !bs && bd && !dTerm) dTerm = bd;
+  }
+  const dishConcepts = concepts.filter(c => c.kind === 'dish' || c.kind === 'ingredient');
+  if (!dishConcepts.length) { // reine Eigenschafts-Suche: nur echte Speisen, keine Beilagen/Extras
+    if (it.side) return null;
+    if (!flags.drinkQ && it.drink) return null;
+  } else {
+    if (it.drink && !flags.drinkQ && !inName) return null;
+    if (it.side && !inName) return null;
+  }
+  if (it.side) sc *= 0.7;
+  if (comp) sc *= 0.5;
+  if (it.dessert && !flags.sweetQ && !inName) sc *= 0.6;
+  return {it, sc, lu: it.lu, inName, inSec, dTerm, comp};
+}
+function runSearch(q, ai, Upre){
+  const U = Upre || (ai ? understandAI(q, ai) : understandLocal(q));
+  const concepts = U.concepts, excl = U.exclude;
+  if (!concepts.length) return {hits:[], empty:true, U};
   const t = nowAthens();
-  const allTerms = groups.flat();
-  const kind = (ai && ai.kind) || '';
-  const meatQ = (ai ? !!ai.meat_dish : allTerms.some(x => MEAT_Q.test(x))) && !allTerms.some(x => /vegan|vegetar|veggie|vegetable|gemuese/.test(x));
-  const cheeseQ = !meatQ && (ai ? !!ai.cheese_dish : allTerms.some(x => CHEESE_Q.test(x)));
-  const dessertQ = kind === 'dessert' || allTerms.some(x => DESSERT_Q.test(x));
-  const drinkQ = kind === 'drink' || allTerms.some(x => DRINK_Q.test(x));
-  const veganQ = allTerms.includes('vegan');
-  const exMeat = excl.some(x => /^(fleisch|meat|pork|beef|lamb|chicken|gyros|souvlaki|wurst|schinken|speck|bacon|ham|sausage|huhn|haehnchen|schwein|rind|lamm|steak|kebab)$/.test(x));
-  const exFish = excl.some(x => /^(fisch|fish|meeresfruechte|seafood|garnele|prawn|prawns|shrimp|shrimps|calamari|squid|octopus|lachs|salmon|tuna|thunfisch|sardine|mussel)$/.test(x));
-  const exCheese = excl.some(x => /^(kaese|cheese|feta|parmesan|mozzarella|halloumi|gouda|cheddar|saganaki|graviera)$/.test(x));
+  const allTerms = concepts.flatMap(c => c.terms || []);
+  const attrs = concepts.filter(c => c.kind === 'attribute').map(c => c.attr);
+  const flags = {
+    drinkQ: attrs.includes('drink') || concepts.some(c => c.kind === 'dish' && c.terms.some(x => /^(coffee|kaffee|beer|bier|wine|wein|cocktail|juice|saft|smoothie|tea|tee|water|wasser|freddo|cappuccino|espresso|latte|ouzo|raki|cola)$/.test(x))),
+    sweetQ: attrs.includes('sweet') || concepts.some(c => c.kind === 'dish' && c.terms.some(x => /^(dessert|cake|kuchen|ice cream|eis|gelato|sorbet|baklava|waffle|pancake|crepe|chocolate|schokolade|halva|loukoumades)$/.test(x))),
+    exMeat: excl.some(x => /^(fleisch|meat|pork|beef|lamb|chicken|gyros|souvlaki|wurst|schinken|speck|bacon|ham|sausage|huhn|haehnchen|schwein|rind|lamm|steak|kebab)$/.test(x)),
+    exFish: excl.some(x => /^(fisch|fish|meeresfruechte|seafood|garnele|prawn|prawns|shrimp|shrimps|calamari|squid|octopus|lachs|salmon|tuna|thunfisch|sardine|mussel)$/.test(x)),
+    exCheese: attrs.includes('cheese_free') || excl.some(x => /^(kaese|cheese|feta|parmesan|halloumi|gouda|saganaki|graviera)$/.test(x))
+  };
+  const MEAT_W = /^(gyros|gyro|souvlaki|souvlakia|kalamaki|meat|pork|beef|lamb|chicken|steak|steaks|kebab|fish|prawn|prawns|shrimp|shrimps|calamari|squid|octopus|salmon|tuna|bacon|ham|sausage|fleisch|fisch|garnele|garnelen|lachs|huhn|haehnchen|kotopoulo|schwein|rind|lamm|wurst|schinken|speck|seafood|meeresfruechte|mussel|sardine|dorade|wolfsbarsch|tintenfisch|oktopus|stifado|kleftiko|pastitsada|sofrito|bourdeto|moussaka|mousaka|pastitsio|carbonara|bolognese|bifteki|cheeseburger|hamburger|schnitzel|spiess)$/;
+  const meatQ = !attrs.includes('vegetarian') && !attrs.includes('vegan') && ((U.words||[]).some(w => MEAT_W.test(w)) || concepts.some(c => c.kind === 'dish' && MEAT_W.test(norm(c.label||''))) || concepts.some(c => c.kind === 'dish' && c.terms.length && c.terms.every(x => /^(gyros|gyro|souvlaki|souvlakia|kalamaki|meat|pork|beef|lamb|chicken|steak|steaks|kebab|fish|prawn|prawns|shrimp|shrimps|calamari|squid|octopus|salmon|tuna|bacon|ham|sausage|fleisch|fisch|garnele|garnelen|lachs|huhn|haehnchen|kotopoulo|schwein|rind|lamm|wurst|schinken|speck|seafood|meeresfruechte|mussel|sardine|dorade|wolfsbarsch|tintenfisch|oktopus|stifado|kleftiko|pastitsada|sofrito|bourdeto|moussaka|mousaka|moussakas|pastitsio|pasticcio|carbonara|bolognese|bolognaise|rib-eye|fillet|spiess|skewer|swordfish|cod|bifteki|cheeseburger|hamburger)$/.test(x))));
+  const cuisineC = concepts.filter(c => c.kind === 'cuisine');
+  const nonCuisine = concepts.filter(c => c.kind !== 'cuisine');
   const hits = [];
   R.forEach(r => {
-    const cuisineHay = norm((r.cuisine||'') + ' ' + r.cat);
-    const cuisineHit = groups.some(g => g.some(x => x.length > 3 && hay(cuisineHay, x)));
-    const items = [];
-    r.menu.forEach(it => {
-      const n = norm(it.n + ' ' + (it.de||'')), d = norm((it.d||'') + ' ' + (it.dd||'')), sn = norm((it.s||'') + ' ' + (it.sde||''));
-      if (excl.length && excluded(excl, n, d)) return;
-      if (exMeat && it.meat) return;          // "ohne Fleisch" gilt auch, wenn das Wort nicht im Namen steht
-      if (exFish && it.fish) return;
-      if (exCheese && it.ch === 'contains') return;
-      let sc = 0, inName = false, gHit = 0, gName = 0, inSec = false, dTerm = '';
-      groups.forEach(g => {
-        let best = 0, bn = false, bs = false;
-        g.forEach(x => {
-          if (x === 'beer' && /ginger beer/.test(n)) return;
-          const w = x.includes(' ') ? 4 : x.length > 4 ? 3 : 2;
-          if (hay(n, x)) { best = Math.max(best, w); bn = true; }
-          else if (hay(d, x)) { best = Math.max(best, w * 0.5); if (!dTerm) dTerm = x; }
-          else if (hay(sn, x)) { best = Math.max(best, 1.2); bs = true; }
-        });
-        if (best > 0) { gHit++; sc += best; if (bn) { gName++; inName = true; } if (bs) inSec = true; }
-      });
-      if (sc <= 0) return;
-      if (groups.length > 1) { if (gHit === groups.length) sc *= 1.6; if (gName === groups.length) sc *= 1.2; }
-      if (it.drink && !drinkQ && !inName) return;
-      if (drinkQ && !it.drink && !inName) return;
-      if (dessertQ && !it.dessert && !inName) return;
-      if (it.side && !inName && !inSec) return;
-      if (it.side) sc *= 0.6;
-      if (it.dessert && !dessertQ) sc *= 0.5; // Nachtisch nur nachrangig, wenn nicht danach gefragt wurde
-      if (veganQ && !it.vg && !(it.lu === 'safe' && !NOTVEGAN.test(n + ' ' + d))) return;
-      let lu = it.lu;
-      if (meatQ && !(it.veg && inName)) lu = it.veg ? 'cheese' : 'no';
-      items.push({it, sc, lu, inName, dTerm});
-    });
+    if (cuisineC.length) {
+      const ok = cuisineC.every(c => (c.kitchen && r.kitchens.includes(c.kitchen)) || c.terms.some(x => hay(norm((r.cuisine||'') + ' ' + r.kitchens.join(' ')), x)));
+      if (!ok) return;
+    }
     const os = openState(r, t);
     if (!r.menu.length) {
-      const matched = (r.veg_no_cheese_dishes||[]).filter(dsh => { const h = norm(dsh); return groups.some(g => g.some(x => hay(h,x))) && !(excl.length && excluded(excl, h, '')); });
-      const sc = matched.length * 1.2 + (cuisineHit ? 2 : 0);
-      const vegVariant = matched.some(dsh => /vegan|veggie|vegetar|falafel|pilz|mushroom|gemuese|gemüse/i.test(dsh));
-      if (sc > 0) hits.push({r, os, items:[], matched, nAll: matched.length, nLu: (meatQ && !vegVariant) ? 0 : matched.length,
-                             luBest: (meatQ && !vegVariant) ? 'no' : matched.length ? 'maybe' : 'cuisine', sc: sc * ZONE_W[r.zone], fallback:true});
+      if (U.vague) return;
+      if (!nonCuisine.length) { // reine Küchen-Suche: Ort zählt, Recherche-Gerichte als Beleg
+        const matched = (r.veg_no_cheese_dishes||[]).slice(0,3);
+        hits.push({r, os, items:[], matched, nAll: Math.max(1, matched.length), nLu: matched.length, luBest: matched.length ? 'maybe' : 'cuisine', sc: 1 * ZONE_W[r.zone], fallback:true});
+        return;
+      }
+      const dishC = nonCuisine.filter(c => c.kind !== 'attribute');
+      if (!dishC.length) {
+        const wantVegan = attrs.includes('vegan');
+        const m2 = (r.veg_no_cheese_dishes||[]).filter(dsh => !wantVegan || /vegan/i.test(dsh)).slice(0,3);
+        if (!m2.length || attrs.some(a => ['sweet','drink','spicy','cold'].includes(a))) return;
+        hits.push({r, os, items:[], matched:m2, nAll:m2.length, nLu:m2.length, luBest:'maybe', sc: 0.5 * ZONE_W[r.zone], fallback:true});
+        return;
+      }
+      const matched = (r.veg_no_cheese_dishes||[]).filter(dsh => { const h = norm(dsh); return dishC.every(c => c.terms.some(x => hay(h, x))) && !(excl.length && excluded(excl, h, '')); });
+      if (!matched.length) return;
+      const vegVariant = matched.some(dsh => /vegan|veggie|vegetar|falafel|pilz|mushroom|gemuese|gemüse|tofu/i.test(dsh));
+      const luN = (meatQ && !vegVariant) ? 0 : matched.length;
+      hits.push({r, os, items:[], matched, nAll: matched.length, nLu: luN, luBest: luN ? 'maybe' : 'no', sc: 1.2 * matched.length * ZONE_W[r.zone], fallback:true});
       return;
     }
-    if (!items.length && !cuisineHit) return;
-    if (!items.length && cuisineHit) r.safeMains.slice(0,3).forEach(it => items.push({it, sc:1, lu: it.lu, inName:false, dTerm:'', cuisineOnly:true}));
-    if (!items.length) { hits.push({r, os, items:[], matched:[], nAll:0, nLu:0, luBest:'cuisine', sc: 2 * ZONE_W[r.zone], cuisineHit:true}); return; }
-    const isLu = x => x.lu === 'safe' || x.lu === 'mozz' || x.lu === 'ask';
-    items.sort((a,b) => (isLu(b) - isLu(a)) || (b.sc - a.sc) || ((a.it.p ?? 999) - (b.it.p ?? 999)));
+    let items;
+    if (!nonCuisine.length) items = r.safeMains.slice(0,4).map(it => ({it, sc:1, lu: it.lu, inName:false, inSec:false, dTerm:'', cuisineOnly:true}));
+    else { items = []; r.menu.forEach(it => { const m = matchItem(it, nonCuisine, excl, flags); if (m) items.push(m); }); }
+    if (U.vague) items = items.filter(x => (luOK(x) || luMaybe(x)) && !x.it.drink && !x.it.side).slice(0, 3); // Empfehlung: nur, was Lu essen kann
+    if (!items.length) return;
+    if (meatQ) items.forEach(x => { if (!(x.it.veg && x.inName)) x.lu = x.it.veg ? 'cheese' : 'no'; });
+    items.sort((a,b) => ((!!a.comp) - (!!b.comp)) || (luOK(b) - luOK(a)) || (luMaybe(b) - luMaybe(a)) || (b.sc - a.sc) || ((a.it.p ?? 999) - (b.it.p ?? 999)));
     const real = items.filter(x => !x.it.side);
-    const luBest = real.some(x=>x.lu==='safe') ? 'safe' : real.some(x=>x.lu==='mozz'||x.lu==='ask') ? 'ask' : (!real.length && items.length) ? 'side' : real.some(x=>x.lu==='cheese') ? 'cheese' : 'no';
-    hits.push({r, os, items, nAll: items.length, nLu: items.filter(isLu).length, luBest,
-               sc: (items[0].sc + Math.min(items.length,4)*0.15 + (cuisineHit ? 2.5 : 0)) * ZONE_W[r.zone], cuisineHit});
+    const luBest = real.some(x => x.lu === 'safe' || x.lu === 'mozz') ? 'safe' : real.some(x => x.lu === 'ask') ? 'ask' : (!real.length && items.length) ? 'side' : real.some(x => x.lu === 'cheese') ? 'cheese' : 'no';
+    hits.push({r, os, items, nAll: items.length, nLu: items.filter(x => !x.comp && (luOK(x) || luMaybe(x))).length, luBest, sc: (items[0].sc + Math.min(items.length,4)*0.15) * ZONE_W[r.zone]});
   });
-  return {hits, sum: sumUp(hits, {meatQ, cheeseQ, veganQ, drinkQ, dessertQ}), E, t};
+  const finalHits = U.vague ? sortHits(hits, 'dist').slice(0, 25) : hits;
+  return {hits: finalHits, sum: sumUp(finalHits, {meatQ, drinkQ: flags.drinkQ, sweetQ: flags.sweetQ, veganQ: attrs.includes('vegan'), cheeseFree: flags.exCheese}), U, t};
 }
 function sumUp(hits, flags){
-  let safe = 0, ask = 0;
+  let safe = 0, ask = 0, comp = 0, own = 0;
   hits.forEach(h => {
-    if (h.items.length) { h.items.forEach(x => { if (x.lu === 'safe') safe++; else if (x.lu === 'mozz' || x.lu === 'ask') ask++; }); }
-    else ask += h.nLu;
+    if (h.items.length) h.items.forEach(x => { if (x.comp) { comp++; return; } own++; if (x.lu === 'safe' || x.lu === 'mozz') safe++; else if (x.lu === 'ask') ask++; });
+    else { ask += h.nLu; own += h.nAll; }
   });
-  return Object.assign({places: hits.length, dishes: hits.reduce((n,h)=>n+h.nAll,0),
-    luDishes: hits.reduce((n,h)=>n+h.nLu,0), luPlaces: hits.filter(h=>h.nLu>0).length,
-    safeDishes: safe, askDishes: ask}, flags || {});
+  const ownPlaces = hits.filter(h => h.items.length ? h.items.some(x => !x.comp) : true).length;
+  return Object.assign({places: hits.length, ownPlaces, dishes: hits.reduce((n,h)=>n+h.nAll,0), ownDishes: own, compDishes: comp,
+    luDishes: hits.reduce((n,h)=>n+h.nLu,0), luPlaces: hits.filter(h=>h.nLu>0).length, safeDishes: safe, askDishes: ask}, flags || {});
 }
-/* Die KI erweitert die Suche nur – die lokale Suche läuft immer mit, damit nie ein Treffer verloren geht. */
+/* Wenn es das Gesuchte exakt nicht gibt: Eigenschaften bzw. Zutaten weglassen und ehrlich sagen, dass es nur so ähnlich ist */
 function searchAll(q, ai){
-  const A = runSearch(q, null);
-  if (!ai) return A;
-  const Bres = runSearch(q, ai);
-  if (A.empty && Bres.empty) return A;
-  // Treffer, die schon die wörtliche Suche gefunden hat, wiegen schwerer als reine KI-Erweiterungen
-  const literal = new Set();
-  (A.empty ? [] : A.hits).forEach(h => h.items.forEach(x => literal.add(x.it)));
-  const hits = mergeHits(A.empty ? [] : A.hits, Bres.empty ? [] : Bres.hits, literal);
-  return {hits, sum: sumUp(hits, (Bres.sum || A.sum || {})), E: Bres.empty ? A.E : Bres.E, t: (Bres.t || A.t)};
-}
-function mergeHits(A, Bh, literal){
-  const isLu = x => x.lu === 'safe' || x.lu === 'mozz' || x.lu === 'ask';
-  const m = new Map();
-  [...A, ...Bh].forEach(h => {
-    const cur = m.get(h.r.id);
-    if (!cur) { m.set(h.r.id, Object.assign({}, h, {items: h.items.slice(), matched: (h.matched||[]).slice()})); return; }
-    h.items.forEach(x => {
-      const e = cur.items.find(y => y.it === x.it);
-      if (!e) cur.items.push(x);
-      else { if (x.sc > e.sc) { e.sc = x.sc; e.lu = x.lu; } e.inName = e.inName || x.inName; if (!e.dTerm && x.dTerm) e.dTerm = x.dTerm; }
-    });
-    (h.matched||[]).forEach(d => { if (!cur.matched.includes(d)) cur.matched.push(d); });
-    cur.sc = Math.max(cur.sc, h.sc);
-    const rank = {safe:3, ask:2, maybe:2, cheese:1, side:1, cuisine:0, no:0};
-    if ((rank[h.luBest]||0) > (rank[cur.luBest]||0)) cur.luBest = h.luBest;
-  });
-  const out = [...m.values()];
-  if (literal) out.forEach(h => h.items.forEach(x => { if (literal.has(x.it)) x.sc += 1.6; }));
-  out.forEach(h => {
-    h.items.sort((a,b) => (isLu(b) - isLu(a)) || (b.sc - a.sc) || ((a.it.p ?? 999) - (b.it.p ?? 999)));
-    h.sc = Math.max(h.sc, (h.items[0] ? h.items[0].sc : 0));
-    h.nAll = h.items.length || h.matched.length;
-    h.nLu = h.items.length ? h.items.filter(isLu).length : (h.luBest === 'no' ? 0 : h.matched.length);
-  });
-  return out;
+  let res = runSearch(q, ai);
+  if (res.empty || res.hits.length) return res;
+  const U = res.U, relax = [];
+  const drop = kinds => ({concepts: U.concepts.filter(c => !kinds.includes(c.kind)), exclude: U.exclude, vague: U.vague, words: U.words});
+  const tryU = (u, label) => { if (!u.concepts.length || u.concepts.every(c => c.kind === 'attribute')) return null; const r2 = runSearch(q, null, u); return (r2.hits && r2.hits.length) ? Object.assign(r2, {relaxed: label, exactU: U, keptLabel: (u.concepts.filter(c => c.kind !== 'cuisine').length ? u.concepts.filter(c => c.kind !== 'cuisine') : u.concepts).map(c => { const l = String(c.label||''); return l.charAt(0).toUpperCase() + l.slice(1); }).join(' + ')}) : null; };
+  const cuisine = U.concepts.filter(c => c.kind === 'cuisine');
+  const core = U.concepts.filter(c => c.kind === 'dish' || c.kind === 'ingredient');
+  const attrsC = U.concepts.filter(c => c.kind === 'attribute');
+  const mk = (cs, dropped) => tryU({concepts: cs, exclude: U.exclude, vague: false, words: U.words}, dropped);
+  // 1) hintere Gerichts-/Zutatenbegriffe einzeln weglassen ("Pizza mit Ananas und Sardellen" → "Pizza mit Ananas")
+  for (let k = core.length - 1; k >= 1; k--) { const r2 = mk([...core.slice(0, k), ...attrsC, ...cuisine], core.slice(k).map(c => c.label).join(', ')); if (r2) return r2; }
+  // 2) Eigenschaften weglassen ("vegetarisch", "ohne Käse")
+  if (attrsC.length && core.length) { const r2 = mk([...core, ...cuisine], attrsC.map(c => c.label).join(', ')); if (r2) return r2; }
+  // 3) beides kombiniert
+  for (let k = core.length - 1; k >= 1; k--) { const r2 = mk([...core.slice(0, k), ...cuisine], [...core.slice(k), ...attrsC].map(c => c.label).join(', ')); if (r2) return r2; }
+  return res;
 }
 const SORTS = [['dist','Nächste zuerst'],['lu','Für Lu geeignete zuerst'],['open','Jetzt offene zuerst'],['rating','Beste Bewertung']];
 function sortHits(hits, key){
@@ -824,23 +935,31 @@ function embeddedKey(){ try { const raw = (window.__EMBED_KEY||'').trim(); if (!
 function settings(){ const own = LS.get('lc_key',''); return { key: own || embeddedKey(), ownKey: !!own, model: LS.get('lc_model','claude-haiku-4-5') }; }
 (function(){ const h = location.hash; if (h && /(^#|&)k=/.test(h)) { const p = new URLSearchParams(h.slice(1)); if (p.get('k')) LS.set('lc_key', p.get('k').trim()); if (p.get('m')) LS.set('lc_model', p.get('m')); history.replaceState(null,'',location.pathname+location.search); } })();
 
-const TERMS_SYS = `Du übersetzt eine frei getippte Essens-Anfrage in Suchbegriffe für Speisekarten von Restaurants auf Korfu.
-Die Karten sind auf Englisch (Originalname) und Deutsch (Übersetzung) erfasst, griechische Gerichtsnamen stehen oft in Umschrift (z. B. gemista, briam, fasolakia, souvlaki).
-Antworte nur mit JSON:
-- groups: Liste von Begriffsgruppen, eine Gruppe pro Konzept, das die Person genannt hat. Innerhalb einer Gruppe sind die Begriffe gleichwertig (ODER), zwischen den Gruppen gilt UND. Alles klein. Pro Gruppe 4–15 Begriffe: deutsch, englisch und griechisch-umschrift, dazu Synonyme und typische Gerichtsnamen.
-  Beispiel "Pasta mit Tomatensauce" -> [["pasta","spaghetti","penne","linguine","tagliatelle","nudeln","gnocchi"],["tomato","tomato sauce","tomatensauce","napoli","napolitana","marinara","arrabbiata","pomodoro"]]
-  Beispiel "was Süßes" -> [["dessert","sweet","cake","kuchen","ice cream","eis","gelato","baklava","halva","loukoumades","crepe","pancake","waffle","chocolate","schokolade"]]
-  Beispiel "Kartoffelbrei" -> [["mashed potato","mashed potatoes","potato puree","kartoffelpüree","kartoffelbrei","skordalia","püree"]]
-- exclude: Begriffe, die ausgeschlossen wurden ("ohne Käse" -> ["cheese","käse","feta","parmesan"]), sonst [].
-- kind: "dish" | "ingredient" | "cuisine" | "dessert" | "drink" | "vague"
-- meat_dish: true, wenn das Gesuchte typischerweise Fleisch oder Fisch ist (Gyros, Souvlaki, Lachs, Burger).
-- cheese_dish: true, wenn es typischerweise Käse enthält (Griechischer Salat, Saganaki, Pizza Margherita, Lasagne).
-Keine Erklärungen, keine weiteren Felder.`;
+const TERMS_SYS = `Du zerlegst eine frei getippte Essens-Anfrage (meist Deutsch, manchmal Englisch, oft umgangssprachlich oder mit Tippfehlern) in Suchkonzepte für Speisekarten von Restaurants auf Korfu. Die Karten sind auf Englisch (Originalname) und Deutsch erfasst; griechische Gerichte stehen in Umschrift (gemista, briam, fasolakia, skordalia, souvlaki …).
+
+Jedes Konzept muss ein Gericht ERFÜLLEN (UND-Verknüpfung). Konzeptarten:
+- "dish": ein Gerichtstyp (Burger, Pizza, Suppe, Kartoffelbrei, Salat, Risotto, Crêpe). Gib 5–15 gleichwertige Begriffe: deutsch, englisch, griechische Umschrift, Schreibvarianten, typische Untertypen. Beispiel Burger → ["burger","hamburger","cheeseburger","veggie burger","vegan burger","bean burger","falafel burger","halloumi burger","bifteki"]. Kartoffelbrei → ["mashed potato","mashed potatoes","potato puree","potato mash","kartoffelpüree","kartoffelbrei","skordalia"].
+- "ingredient": eine Zutat, die im Gericht vorkommen soll (Pilze, Aubergine, Tomate, Kichererbsen). Begriffe wie bei dish (Pilze → ["mushroom","mushrooms","pilze","champignons","funghi","manitaria"]).
+- "attribute": eine Eigenschaft, keine Wortsuche. attr ∈ vegetarian | vegan | cheese_free | sweet | drink | spicy | light | warm | cold. "vegetarisch/veggie/fleischlos" → vegetarian. "ohne Käse/käsefrei" → cheese_free. "was Süßes/Dessert/Nachtisch" → sweet. "was Leichtes" → light.
+- "cuisine": eine Landesküche oder Lokaltyp (indisch, griechisch, italienisch, mexikanisch, asiatisch, britisch/Pub, Café/Eisdiele, Bar). label = deutsches Wort.
+
+Regeln:
+- "vegetarischer Burger" → dish Burger + attribute vegetarian. "Pizza mit Pilzen" → dish Pizza + ingredient Pilze. "Salat ohne Käse" → dish Salat + attribute cheese_free. "Pasta mit Tomatensauce" → dish Pasta + ingredient Tomatensauce ["tomato sauce","napoli","napolitana","marinara","arrabbiata","pomodoro","tomatensauce"].
+- Ein Gericht, das selbst ein fester Name ist (Gemista, Moussaka, Falafel, Hummus, Baklava, Souvlaki), ist ein dish mit seinen Schreibvarianten.
+- Nur Begriffe für DASSELBE Gericht – keine verwandten anderen Gerichte (Gyros ≠ Souvlaki, Pizza ≠ Pasta, Kuchen ≠ Eis). Lieber weniger Begriffe als falsche.
+- Wörter wie Hauptgericht/Gericht/Essen sind kein dish, sondern attribute "warm" oder werden weggelassen; "vegetarisch/vegan/ohne Käse" sind immer attribute.
+- "ohne X" bei Fleisch/Fisch → exclude mit den Begriffen; bei Käse → attribute cheese_free.
+- vague = true nur, wenn kein konkretes Gericht/Zutat/Küche genannt ist ("was Gutes", "irgendwas Leichtes").
+- label: 1–2 deutsche Wörter für die Anzeige („Burger", „vegetarisch", „Pilze").
+Antworte nur mit JSON, keine Erklärungen.`;
 const TERMS_SCHEMA = { type:'object', additionalProperties:false, properties:{
-  groups:{type:'array', items:{type:'array', items:{type:'string'}}},
+  concepts:{type:'array', items:{type:'object', additionalProperties:false, properties:{
+    kind:{type:'string', enum:['dish','ingredient','attribute','cuisine']},
+    terms:{type:'array', items:{type:'string'}},
+    attr:{type:'string', enum:['vegetarian','vegan','cheese_free','sweet','drink','spicy','light','warm','cold','none']},
+    label:{type:'string'} }, required:['kind','terms','attr','label']}},
   exclude:{type:'array', items:{type:'string'}},
-  kind:{type:'string', enum:['dish','ingredient','cuisine','dessert','drink','vague']},
-  meat_dish:{type:'boolean'}, cheese_dish:{type:'boolean'} }, required:['groups','exclude','kind','meat_dish','cheese_dish'] };
+  vague:{type:'boolean'} }, required:['concepts','exclude','vague'] };
 const PHOTO_SCHEMA = { type:'object', additionalProperties:false, properties:{ readable:{type:'boolean'}, summary:{type:'string'}, dishes:{type:'array', items:{type:'object', additionalProperties:false, properties:{ name_de:{type:'string'}, name_orig:{type:'string'}, price:{type:'string'}, verdict:{type:'string', enum:['safe','ask','no']}, why:{type:'string'} }, required:['name_de','name_orig','price','verdict','why']}} }, required:['readable','summary','dishes'] };
 function extractJSON(txt){ try { return JSON.parse(txt); } catch(e){} const m = txt.match(/\{[\s\S]*\}/); if (m) { try { return JSON.parse(m[0]); } catch(e){} } throw new Error('Antwort war kein JSON'); }
 async function callClaude(system, userContent, schema, maxTokens){
@@ -864,14 +983,15 @@ const aiCache = new Map();
 async function aiTerms(q){
   const k = q.trim().toLowerCase();
   if (aiCache.has(k)) return aiCache.get(k);
-  const a = await callClaude(TERMS_SYS, `Anfrage: ${q}`, TERMS_SCHEMA, 700);
+  const a = await callClaude(TERMS_SYS, `Anfrage: ${q}`, TERMS_SCHEMA, 800);
+  (a.concepts||[]).forEach(c => { if (c.attr === 'none') delete c.attr; });
   aiCache.set(k, a);
   return a;
 }
 async function aiPhoto(dataUrl){
   const b64 = dataUrl.split(',')[1];
-  const content = [ {type:'image', source:{type:'base64', media_type:'image/jpeg', data:b64}}, {type:'text', text:'Lies diese Speisekarte (griechisch/englisch). Liste JEDES vegetarische Gericht auf – mit deutschem Namen (name_de), Originalname (name_orig), Preis falls lesbar, Bewertung für Lu (safe = laut Karte kein Käse, ask = Käse abwählbar oder Mozzarella-Sorte klären, no = enthält Käse) und einer kurzen deutschen Begründung. Fleisch- und Fischgerichte weglassen. summary: ein Satz auf Deutsch, was Lu hier am besten nimmt.'} ];
-  return callClaude('Du hilfst Lu (Vegetarierin, kein Käse außer reinem Kuhmilch-Mozzarella, Joghurt ok) beim Lesen einer fotografierten Speisekarte. Antworte auf Deutsch.', content, PHOTO_SCHEMA, 2500);
+  const content = [ {type:'image', source:{type:'base64', media_type:'image/jpeg', data:b64}}, {type:'text', text:'Lies diese Speisekarte (griechisch/englisch). Liste JEDES vegetarische Gericht auf – mit deutschem Namen (name_de), Originalname (name_orig), Preis falls lesbar, Bewertung für Lu (safe = laut Karte kein Käse oder nur Mozzarella/Burger-Scheibenkäse, ask = Käse abwählbar oder unklar, no = enthält Feta, Halloumi, Parmesan oder anderen Käse) und einer kurzen deutschen Begründung. Fleisch- und Fischgerichte weglassen. summary: ein Satz auf Deutsch, was Lu hier am besten nimmt.'} ];
+  return callClaude('Du hilfst Lu (Vegetarierin; kein Käse außer Mozzarella und Burger-Scheibenkäse; Joghurt ok) beim Lesen einer fotografierten Speisekarte. Antworte auf Deutsch.', content, PHOTO_SCHEMA, 2500);
 }
 
 /* ================= UI helpers ================= */
@@ -906,7 +1026,7 @@ function renderHome(){
 /* ================= search results ================= */
 const EXAMPLES = ['Kartoffelbrei','Pizza','Indisches Curry','Gemista','Falafel','Pasta mit Tomatensauce','Was Süßes','Frühstück','Gegrilltes Gemüse'];
 let resState = {q:'', res:null, sort:'dist', expanded:{}, source:'lokal'};
-const luOk = x => x.lu === 'safe' || x.lu === 'mozz' || x.lu === 'ask';
+const luOk = x => x.lu === 'safe' || x.lu === 'mozz';
 const nonVeg = it => it && it.fish ? 'Fisch' : it && it.meat ? 'Fleisch' : 'nicht vegetarisch';
 function snippet(text, term){
   if (!text) return '';
@@ -920,8 +1040,8 @@ function snippet(text, term){
 function dishRow(x){
   const it = x.it, lu = x.lu;
   // Wenn der Treffer nur in der Beschreibung steckt, zeigen wir die Stelle – sonst wirkt das Ergebnis willkürlich
-  const why = (!x.inName && !x.cuisineOnly && x.dTerm) ? snippet(dd(it) || it.d || '', x.dTerm) : '';
-  const tag = lu === 'safe' ? '' : lu === 'mozz' ? '<span class="tagp amber">Kuhmilch-Mozzarella? fragen</span>'
+  const why = x.comp ? 'nur als Beilage oder Bestandteil dieses Gerichts' : (!x.inName && !x.cuisineOnly && x.dTerm) ? snippet(dd(it) || it.d || '', x.dTerm) : '';
+  const tag = lu === 'safe' ? '' : lu === 'mozz' ? '<span class="tagp">Mozzarella</span>'
     : lu === 'ask' ? '<span class="tagp amber">ohne Käse bestellen</span>'
     : lu === 'cheese' ? '<span class="tagp">enthält Käse</span>' : `<span class="tagp">${nonVeg(it)}</span>`;
   return `<div class="dr">${FL[lu]||FL.no}<div class="dn"><b>${esc(dn(it))}</b>${tag}${why?`<div class="dwhy">${esc(why)}</div>`:''}</div><div class="dp num">${eur(it.p)}</div></div>`;
@@ -953,30 +1073,40 @@ function renderResults(){
   const {hits, sum} = res;
   const openLu = hits.filter(h => h.nLu > 0 && h.os.state === 'open');
   let cls, lead, sub = '';
-  if (!hits.length) { cls = 'no'; lead = `Dazu steht nichts auf den Karten.`; sub = 'Versuch eine Zutat („Pilze“), eine Küche („indisch“) oder ein anderes Wort.'; }
+  if (!hits.length) { cls = 'no'; lead = `„${st.q}“ steht auf keiner der ${R.filter(r=>r.menu.length).length} erfassten Karten.`; sub = 'Auch nicht in ähnlicher Schreibweise. Versuch eine Zutat („Pilze“), eine Küche („indisch“) oder ein anderes Wort.'; }
+  else if (res.U && res.U.concepts.length && res.U.concepts.every(c => c.kind === 'cuisine')) { cls = sum.luPlaces ? 'yes' : 'later'; const lab = res.U.concepts.map(c => c.label).join(', '); lead = `${sum.places} ${sum.places === 1 ? 'Lokal' : 'Lokale'} für „${lab}“ – ${sum.luPlaces} davon mit Auswahl für Lu.`; sub = sum.luPlaces ? `Gezeigt werden je Lokal die besten Gerichte ohne Käse.` : ''; }
+  else if (sum.meatQ && !sum.safeDishes) { cls = sum.askDishes ? 'later' : 'no'; lead = sum.askDishes ? `„${st.q}“ ist normalerweise Fleisch oder Fisch – vegetarische Varianten gibt es laut Recherche an ${sum.luPlaces} ${sum.luPlaces === 1 ? 'Ort' : 'Orten'}.` : `„${st.q}“ ist ein Fleisch- oder Fischgericht – ${sum.dishes} Treffer, keiner für Lu.`; sub = sum.askDishes ? 'Vor Ort nachfragen, ob es die vegetarische Variante gerade gibt.' : 'Die Treffer stehen unten, für Lu bräuchte es dort etwas anderes.'; }
   else if (!sum.luDishes) { cls = 'no'; lead = sum.dishes === 1 ? `Der einzige Treffer ist nichts für Lu.` : `Keiner der ${sum.dishes} Treffer ist ohne Fleisch, Fisch oder Käse.`; sub = 'Die Treffer stehen unten – für Lu bräuchte es etwas anderes.'; }
+  else if (sum.drinkQ) { cls = 'yes'; lead = `„${st.q}“ gibt es ${sum.dishes}× an ${sum.places} ${sum.places === 1 ? 'Ort' : 'Orten'}.`; sub = ''; }
+  else if (res.U && res.U.vague) { cls = 'yes'; lead = `Ideen für „${st.q}“: ${sum.luDishes} ${sum.luDishes === 1 ? 'Gericht' : 'Gerichte'} an ${sum.luPlaces} ${sum.luPlaces === 1 ? 'Ort' : 'Orten'}.`; sub = 'Nur Gerichte, die Lu essen kann – sortiert nach Entfernung.'; }
+  else if (!sum.ownDishes && sum.compDishes) { cls = 'later'; lead = `„${res.relaxed && res.keptLabel ? res.keptLabel : st.q}“ gibt es nicht als eigenes Gericht – nur als Beilage oder Bestandteil (${sum.compDishes}×).`; sub = 'Die Gerichte stehen unten; für Lu sind sie meist nicht geeignet.'; }
   else {
     const nearest = sortHits(hits.filter(h => h.nLu > 0), 'dist')[0];
     cls = openLu.length ? 'yes' : 'later';
-    lead = sum.safeDishes
-      ? `${sum.safeDishes} ${sum.safeDishes === 1 ? 'Gericht' : 'Gerichte'} ohne Käse für Lu an ${sum.luPlaces} ${sum.luPlaces === 1 ? 'Ort' : 'Orten'}.`
-      : `${sum.askDishes} ${sum.askDishes === 1 ? 'Gericht' : 'Gerichte'} für Lu – aber nur auf Nachfrage ohne Käse.`;
+    const nOwn = sum.ownDishes, nPl = sum.ownPlaces;
+    const shown = res.relaxed && res.keptLabel ? res.keptLabel : st.q;
+    lead = `„${shown}“ gibt es ${nOwn}× an ${nPl} ${nPl === 1 ? 'Ort' : 'Orten'} – ${sum.safeDishes ? `${sum.safeDishes} davon für Lu ohne Käse` : `${sum.askDishes} für Lu nur auf Nachfrage`}.`;
     const bits = [];
     if (sum.safeDishes && sum.askDishes) bits.push(`${sum.askDishes} weitere nur auf Nachfrage ohne Käse.`);
+    if (sum.compDishes) bits.push(`${sum.compDishes} weitere nur als Beilage.`);
     if (openLu.length) { const n = sortHits(openLu, 'dist')[0]; bits.push(`Jetzt offen und am nächsten: ${n.r.name} (${distText(n.r)}).`); }
     else bits.push(`Gerade hat keiner davon offen – am nächsten wäre ${nearest.r.name} (${nearest.os.text}).`);
     if (sum.dishes > sum.luDishes) bits.push(`${sum.dishes - sum.luDishes} weitere Treffer enthalten Fleisch, Fisch oder Käse.`);
     sub = bits.join(' ');
   }
   if (res.sum && res.sum.veganQ) sub += ' ✓ heißt „ohne Käse“, nicht zwingend vegan – bei Ei, Joghurt oder Honig kurz fragen.';
+  const cap = x => String(x||'').split(', ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(', ');
+  const relaxNote = res.relaxed ? `<div class="small" style="margin-bottom:6px"><b>Genau „${esc(st.q)}“ steht auf keiner Karte.</b> Ohne „${esc(cap(res.relaxed))}“ gibt es:</div>` : '';
+  if (res.relaxed) cls = 'later';
   const sorted = sortHits(hits, st.sort);
   const cards = sorted.map(h => hitCard(h, t)).join('');
-  const terms = (res.E.groups||[]).map(g => g[0]).filter(Boolean).slice(0,6);
+  box.dataset.hits = JSON.stringify(sorted.map(h => [h.r.id, h.items.map(x => x.it.id)]));
+  const understood = ((res.U && res.U.concepts) || []).map(c => c.label).filter(Boolean).slice(0,5);
   box.innerHTML = `<div class="result">
-    <div class="result-head ${cls}"><div><div class="lead">${esc(lead)}</div>${sub?`<div class="small" style="margin-top:4px">${esc(sub)}</div>`:''}</div></div>
+    <div class="result-head ${cls}"><div>${relaxNote}<div class="lead">${esc(lead)}</div>${sub?`<div class="small" style="margin-top:4px">${esc(sub)}</div>`:''}</div></div>
     ${hits.length > 1 ? `<div class="sortbar"><label for="rsort">Sortieren</label><select id="rsort">${SORTS.map(([v,l])=>`<option value="${v}"${v===st.sort?' selected':''}>${l}</option>`).join('')}</select></div>` : ''}
     <div class="result-body">${cards}</div>
-    <div class="result-foot" data-total="${sum.dishes}" data-places="${sum.places}">${sum.dishes} ${sum.dishes===1?'Treffer':'Treffer'} in allen ${R.reduce((n,r)=>n+r.menu.length,0).toLocaleString('de-DE')} erfassten Gerichten${terms.length?` · gesucht nach: ${esc(terms.join(', '))}`:''} · ${esc(st.source)}</div></div>`;
+    <div class="result-foot" data-total="${sum.dishes}" data-places="${sum.places}">${sum.dishes} Treffer in ${R.reduce((n,r)=>n+r.menu.length,0).toLocaleString('de-DE')} erfassten Gerichten${understood.length?` · verstanden als: ${esc(understood.join(' + '))}`:''} · ${esc(st.source)}</div></div>`;
   const sel = $('#rsort'); if (sel) sel.addEventListener('change', e => { resState.sort = e.target.value; try { renderResults(); } catch(err){ searchFailed(err); } });
 }
 document.addEventListener('click', e => {
@@ -1062,14 +1192,14 @@ $('#lreset').addEventListener('click', () => { Object.assign(listState, {zone:nu
 $('#lsort').addEventListener('change', e => { listState.sort = e.target.value; renderList(); });
 function listMatches(){
   const t = nowAthens();
-  const q = listState.q ? expand(listState.q) : null;
+  const q = listState.q ? understandLocal(listState.q) : null;
   return R.filter(r => {
     if (listState.zone && r.zone !== listState.zone) return false;
     if (listState.open && openState(r,t).state !== 'open') return false;
     if (listState.lu && !hasLuFood(r)) return false;
     if (listState.cheap && r.price_level !== '€') return false;
     if (listState.kitchens.length && !r.kitchens.some(k => listState.kitchens.includes(k))) return false;
-    if (q && q.groups.length) { const h = norm(r.hay); if (!q.groups.every(g => g.some(term => h.includes(term)))) return false; }
+    if (q) { const cs = q.concepts.filter(c => c.terms && c.terms.length); if (cs.length) { const h = norm(r.hay); if (!cs.every(c => c.terms.some(term => h.includes(term)))) return false; } }
     return true;
   });
 }
@@ -1116,7 +1246,7 @@ function itemRow(it){
   const o = it.de && norm(it.de) !== norm(it.n) ? `<div class="o">${esc(it.n)}</div>` : '';
   const d = dd(it);
   const note = it.note ? `<div class="d" style="color:var(--amber-ink)">Hinweis: ${esc(it.note)}</div>` : '';
-  return `<div class="item${it.lu==='safe'||it.lu==='ask'||it.lu==='mozz'?'':' notlu'}" data-lu="${it.lu}">${FL[it.lu]||FL.no}<div><div class="n">${esc(dn(it))}${it.lu==='mozz'?' <span class="pill amber" style="padding:1px 7px;font-size:.68rem">Kuh-Mozzarella? fragen</span>':it.lu==='ask'?' <span class="pill amber" style="padding:1px 7px;font-size:.68rem">Käse abbestellen</span>':''}</div>${o}${d?`<div class="d">${esc(d)}</div>`:''}${note}</div><div class="p num">${eur(it.p)}</div></div>`;
+  return `<div class="item${it.lu==='safe'||it.lu==='ask'||it.lu==='mozz'?'':' notlu'}" data-lu="${it.lu}">${FL[it.lu]||FL.no}<div><div class="n">${esc(dn(it))}${it.lu==='mozz'?' <span class="pill" style="padding:1px 7px;font-size:.68rem">Mozzarella</span>':it.lu==='ask'?' <span class="pill amber" style="padding:1px 7px;font-size:.68rem">Käse abbestellen</span>':''}</div>${o}${d?`<div class="d">${esc(d)}</div>`:''}${note}</div><div class="p num">${eur(it.p)}</div></div>`;
 }
 function openSheet(id){
   const r = byId(id); if (!r) return;
@@ -1296,7 +1426,7 @@ function printReport(){
 $$('[data-report]').forEach(b => b.addEventListener('click', printReport));
 
 R.forEach(r => { r.kitchens = kitchensOf(r); });
-if (location.protocol === 'file:' || /^(localhost|127\.)/.test(location.hostname)) window.__lu = { R, runSearch, sortHits, expand, resState, renderResults, buildReport };
+if (location.protocol === 'file:' || /^(localhost|127\.)/.test(location.hostname)) window.__lu = { R, runSearch, searchAll, sortHits, understandLocal, resState, renderResults, buildReport };
 renderHome(); renderWissen(); renderList();
 setInterval(() => { if ($('#v-home').classList.contains('active')) renderHome(); }, 60000);
 })();
