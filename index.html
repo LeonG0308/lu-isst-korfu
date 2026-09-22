@@ -404,6 +404,7 @@ details.plain[open] summary::after{transform:rotate(225deg)}
   <div class="search"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="lq" type="search" placeholder="Restaurant, Küche oder Gericht …" autocomplete="off"></div>
   <div class="seg" id="zones"></div>
   <p class="tiny muted" id="zonehint" style="margin-top:8px"></p>
+  <p class="tiny" id="otherzones" style="margin-top:6px"></p>
   <div class="toggles" id="toggles"></div>
   <div class="lrow"><span class="count"><span id="lcount"></span> · <button class="lnk" type="button" data-scoreinfo="4" style="font-size:.8rem">Was heißt die Zahl?</button></span><select id="lsort" aria-label="Sortierung"><option value="score">Beste für euch zuerst</option><option value="dist">Nächste zuerst</option><option value="rating">Beste Google-Bewertung</option><option value="lu">Meiste Auswahl für Lu</option></select></div>
   <div class="list" id="list"></div>
@@ -521,7 +522,9 @@ function openState(r, t){
 }
 
 /* ================= derived ================= */
-const DRINK = /shake|juice|cooler|coffee|\btea\b|lemonade|\bwater\b|cola|beer|wine|cocktail|mocktail|caipir|colada|punch|smoothie|frapp|freddo|soda|milk\b|espresso|cappuccino|latte|mojito|spritz|ouzo|tsipouro|raki|gin\b|vodka|rum\b|whisk|liqueur|lassi|chai|beverage|drink|sugar 0|saft|kaffee|limonade|bier|wein/i;
+const DRINK = /\b(shake|juice|cooler|coffee|tea|lemonade|water|cola|coke|beer|wine|cocktails?|mocktails?|caipir\w*|colada|punch|smoothie|frapp\w*|freddo|soda|milk|espresso|cappuccino|latte|mojito|spritz|ouzo|tsipouro|raki|gin|vodka|rum|whisk\w*|liqueur|lassi|chai|beverages?|drinks?|saft|säfte|kaffee|limonade|bier|wein|tee)\b/i;
+// Speisen, die zufällig wie ein Getränk klingen (Schokolade enthält "cola", Weißweinsauce "wine" …)
+const NOT_DRINK = /\b(cake|kuchen|torte|sauce|sauce[ns]?|so(ss|ß)e|salad|salat|steak|fillet|filet|risotto|pasta|pizza|soup|suppe|chocolate|schokolade|shrimps?|prawns?|garnelen?|dessert|eis|ice cream|sorbet|mousse|pie|tart|creme|crème|pudding|butter|braten|gulasch|wrap|sandwich|toast)\b/i;
 const DRINK_SEC = /drink|getr|coffee|kaffee|beverage|wine|wein|beer|bier|cocktail|mocktail|spirit|shake|juice|smoothie|alcohol|soft drink|cooler|\bbar\b|tee\b/i;
 const DESSERT = /ice cream|gelato|sorbet|cake|dessert|baklava|halva|pancake|crepe|crêpe|waffle|tiramisu|cheesecake|pie$|souffl|mousse|brownie|loukoum|kataifi|galaktob|yogurt with honey|yoghurt with honey|fruit salad|kulfi|gulab|kuchen|eis\b/i;
 const DESSERT_SEC = /\bdessert|\bsweet|\bsüß|\bice cream|\bgelato|\bsorbet|\bnachspeise|\bkuchen|\beis\b|\bnachtisch/i;
@@ -546,7 +549,8 @@ const ratingScore = g => g == null ? 3 : g >= 4.7 ? 5 : g >= 4.5 ? 4 : g >= 4.2 
 R.forEach((r, i) => {
   r.id = i; r.zone = zoneOf(r); r.sub = SUBZONE(r); r.cat = CUISINE(r);
   r.menu = r.menu || [];
-  r.menu.forEach((it, j) => { it.id = j; it.rid = i; const secName = it.sde || it.s || ''; it.drink = DRINK.test(it.n) || DRINK_SEC.test(secName); it.dessert = DESSERT.test(it.n) || (DESSERT_SEC.test(secName) && !/kind|kids|child|men[uü]/i.test(secName)); it.side = SIDE.test(it.n) || SIDE.test(it.de||''); it.main = MAIN3.test(it.n) || MAIN3.test(it.de||'') ? 3 : MAIN2.test(it.n) || MAIN2.test(it.de||'') ? 2 : (MAIN1.test(it.n) || MAIN3.test(it.d||'')) ? 1 : 0; it.lu = luOf(it); if (it.lu==='safe' && /hack|fleisch|mince|meat/i.test(it.note||'')) it.lu = 'ask'; });
+  r.menu.forEach((it, j) => { it.id = j; it.rid = i; const secName = it.sde || it.s || ''; const nm = it.n + ' ' + (it.de||'');
+    it.drink = (DRINK.test(nm) && !NOT_DRINK.test(nm)) || (DRINK_SEC.test(secName) && !NOT_DRINK.test(nm)); it.dessert = DESSERT.test(it.n) || (DESSERT_SEC.test(secName) && !/kind|kids|child|men[uü]/i.test(secName)); it.side = SIDE.test(it.n) || SIDE.test(it.de||''); it.main = MAIN3.test(it.n) || MAIN3.test(it.de||'') ? 3 : MAIN2.test(it.n) || MAIN2.test(it.de||'') ? 2 : (MAIN1.test(it.n) || MAIN3.test(it.d||'')) ? 1 : 0; it.lu = luOf(it); if (it.lu==='safe' && /hack|fleisch|mince|meat/i.test(it.note||'')) it.lu = 'ask'; });
   r.food = r.menu.filter(it => !it.drink);
   r.safe = r.food.filter(it => it.lu === 'safe');
   r.ask = r.food.filter(it => it.lu === 'ask' || it.lu === 'mozz');
@@ -673,6 +677,9 @@ const ZONE_W = {'Zu Fuß':1, 'Roda':.9, 'Acharavi':.65, 'Korfu-Stadt':.3, 'Ausfl
 const escRe = x => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const hay = (h, x) => h.includes(x) && (x.length > 5 || new RegExp('(^|[^a-z])' + escRe(x) + '($|[^a-z])').test(h));
 const NOTVEGAN = /(^|[^a-z])(ei|eier|egg|eggs|joghurt|yogurt|yoghurt|honig|honey|butter|sahne|cream|milch|milk|tzatziki|omelet|omelett|omelette|mayo|mayonnaise)($|[^a-z])/;
+// "Pita vegetarisch (ohne Fleisch)" darf bei der Suche "ohne Fleisch" nicht rausfliegen
+const negated = (h, x) => { let i = h.indexOf(x); while (i >= 0) { if (!/\b(ohne|without|choris|kein|keine|keinen|no|frei von)\b[^a-z]{0,12}$/.test(h.slice(Math.max(0, i-18), i))) return false; i = h.indexOf(x, i + 1); } return true; };
+const excluded = (list, n, d) => list.some(x => (hay(n, x) && !negated(n, x)) || (hay(d, x) && !negated(d, x)));
 
 /* Finds EVERY matching dish on every menu. Nothing is capped or dropped for display. */
 function runSearch(q, ai){
@@ -688,6 +695,9 @@ function runSearch(q, ai){
   const dessertQ = kind === 'dessert' || allTerms.some(x => DESSERT_Q.test(x));
   const drinkQ = kind === 'drink' || allTerms.some(x => DRINK_Q.test(x));
   const veganQ = allTerms.includes('vegan');
+  const exMeat = excl.some(x => /^(fleisch|meat|pork|beef|lamb|chicken|gyros|souvlaki|wurst|schinken|speck|bacon|ham|sausage|huhn|haehnchen|schwein|rind|lamm|steak|kebab)$/.test(x));
+  const exFish = excl.some(x => /^(fisch|fish|meeresfruechte|seafood|garnele|prawn|prawns|shrimp|shrimps|calamari|squid|octopus|lachs|salmon|tuna|thunfisch|sardine|mussel)$/.test(x));
+  const exCheese = excl.some(x => /^(kaese|cheese|feta|parmesan|mozzarella|halloumi|gouda|cheddar|saganaki|graviera)$/.test(x));
   const hits = [];
   R.forEach(r => {
     const cuisineHay = norm((r.cuisine||'') + ' ' + r.cat);
@@ -695,7 +705,10 @@ function runSearch(q, ai){
     const items = [];
     r.menu.forEach(it => {
       const n = norm(it.n + ' ' + (it.de||'')), d = norm((it.d||'') + ' ' + (it.dd||'')), sn = norm((it.s||'') + ' ' + (it.sde||''));
-      if (excl.length && excl.some(x => hay(n,x) || hay(d,x))) return;
+      if (excl.length && excluded(excl, n, d)) return;
+      if (exMeat && it.meat) return;          // "ohne Fleisch" gilt auch, wenn das Wort nicht im Namen steht
+      if (exFish && it.fish) return;
+      if (exCheese && it.ch === 'contains') return;
       let sc = 0, inName = false, gHit = 0, gName = 0, inSec = false;
       groups.forEach(g => {
         let best = 0, bn = false, bs = false;
@@ -710,11 +723,12 @@ function runSearch(q, ai){
       });
       if (sc <= 0) return;
       if (groups.length > 1) { if (gHit === groups.length) sc *= 1.6; if (gName === groups.length) sc *= 1.2; }
-      if (it.drink && !drinkQ) return;
+      if (it.drink && !drinkQ && !inName) return;
       if (drinkQ && !it.drink && !inName) return;
       if (dessertQ && !it.dessert && !inName) return;
       if (it.side && !inName && !inSec) return;
       if (it.side) sc *= 0.6;
+      if (it.dessert && !dessertQ) sc *= 0.5; // Nachtisch nur nachrangig, wenn nicht danach gefragt wurde
       if (veganQ && !it.vg && !(it.lu === 'safe' && !NOTVEGAN.test(n + ' ' + d))) return;
       let lu = it.lu;
       if (meatQ && !(it.veg && inName)) lu = it.veg ? 'cheese' : 'no';
@@ -722,7 +736,7 @@ function runSearch(q, ai){
     });
     const os = openState(r, t);
     if (!r.menu.length) {
-      const matched = (r.veg_no_cheese_dishes||[]).filter(dsh => { const h = norm(dsh); return groups.some(g => g.some(x => hay(h,x))) && !(excl.length && excl.some(x => hay(h,x))); });
+      const matched = (r.veg_no_cheese_dishes||[]).filter(dsh => { const h = norm(dsh); return groups.some(g => g.some(x => hay(h,x))) && !(excl.length && excluded(excl, h, '')); });
       const sc = matched.length * 1.2 + (cuisineHit ? 2 : 0);
       const vegVariant = matched.some(dsh => /vegan|veggie|vegetar|falafel|pilz|mushroom|gemuese|gemüse/i.test(dsh));
       if (sc > 0) hits.push({r, os, items:[], matched, nAll: matched.length, nLu: (meatQ && !vegVariant) ? 0 : matched.length,
@@ -739,20 +753,60 @@ function runSearch(q, ai){
     hits.push({r, os, items, nAll: items.length, nLu: items.filter(isLu).length, luBest,
                sc: (items[0].sc + Math.min(items.length,4)*0.15 + (cuisineHit ? 2.5 : 0)) * ZONE_W[r.zone], cuisineHit});
   });
-  const sum = {places: hits.length, dishes: hits.reduce((n,h)=>n+h.nAll,0), luDishes: hits.reduce((n,h)=>n+h.nLu,0),
-               luPlaces: hits.filter(h=>h.nLu>0).length, meatQ, cheeseQ, veganQ, drinkQ, dessertQ};
-  return {hits, sum, E, t};
+  return {hits, sum: sumUp(hits, {meatQ, cheeseQ, veganQ, drinkQ, dessertQ}), E, t};
 }
-const SORTS = [['dist','Nächste zuerst'],['open','Jetzt offene zuerst'],['rating','Beste Bewertung'],['lu','Meiste Auswahl für Lu']];
+function sumUp(hits, flags){
+  let safe = 0, ask = 0;
+  hits.forEach(h => {
+    if (h.items.length) { h.items.forEach(x => { if (x.lu === 'safe') safe++; else if (x.lu === 'mozz' || x.lu === 'ask') ask++; }); }
+    else ask += h.nLu;
+  });
+  return Object.assign({places: hits.length, dishes: hits.reduce((n,h)=>n+h.nAll,0),
+    luDishes: hits.reduce((n,h)=>n+h.nLu,0), luPlaces: hits.filter(h=>h.nLu>0).length,
+    safeDishes: safe, askDishes: ask}, flags || {});
+}
+/* Die KI erweitert die Suche nur – die lokale Suche läuft immer mit, damit nie ein Treffer verloren geht. */
+function searchAll(q, ai){
+  const A = runSearch(q, null);
+  if (!ai) return A;
+  const Bres = runSearch(q, ai);
+  if (A.empty && Bres.empty) return A;
+  const hits = mergeHits(A.empty ? [] : A.hits, Bres.empty ? [] : Bres.hits);
+  return {hits, sum: sumUp(hits, (Bres.sum || A.sum || {})), E: Bres.empty ? A.E : Bres.E, t: (Bres.t || A.t)};
+}
+function mergeHits(A, Bh){
+  const isLu = x => x.lu === 'safe' || x.lu === 'mozz' || x.lu === 'ask';
+  const m = new Map();
+  [...A, ...Bh].forEach(h => {
+    const cur = m.get(h.r.id);
+    if (!cur) { m.set(h.r.id, Object.assign({}, h, {items: h.items.slice(), matched: (h.matched||[]).slice()})); return; }
+    h.items.forEach(x => {
+      const e = cur.items.find(y => y.it === x.it);
+      if (!e) cur.items.push(x);
+      else if (x.sc > e.sc) { e.sc = x.sc; e.lu = x.lu; e.inName = e.inName || x.inName; }
+    });
+    (h.matched||[]).forEach(d => { if (!cur.matched.includes(d)) cur.matched.push(d); });
+    cur.sc = Math.max(cur.sc, h.sc);
+    const rank = {safe:3, ask:2, maybe:2, cheese:1, side:1, cuisine:0, no:0};
+    if ((rank[h.luBest]||0) > (rank[cur.luBest]||0)) cur.luBest = h.luBest;
+  });
+  const out = [...m.values()];
+  out.forEach(h => {
+    h.items.sort((a,b) => (isLu(b) - isLu(a)) || (b.sc - a.sc) || ((a.it.p ?? 999) - (b.it.p ?? 999)));
+    h.nAll = h.items.length || h.matched.length;
+    h.nLu = h.items.length ? h.items.filter(isLu).length : (h.luBest === 'no' ? 0 : h.matched.length);
+  });
+  return out;
+}
+const SORTS = [['dist','Nächste zuerst'],['lu','Für Lu geeignete zuerst'],['open','Jetzt offene zuerst'],['rating','Beste Bewertung']];
 function sortHits(hits, key){
   const d = h => h.r.dist_m ?? 9e9;
   const o = h => h.os.state === 'open' ? 2 : h.os.state === 'unknown' ? 1 : 0;
-  const g = h => h.nLu > 0 ? 1 : 0;
   const cmp = {
-    dist: (a,b) => g(b)-g(a) || d(a)-d(b),
-    open: (a,b) => g(b)-g(a) || o(b)-o(a) || d(a)-d(b),
-    rating: (a,b) => g(b)-g(a) || (b.r.google_rating||0)-(a.r.google_rating||0) || d(a)-d(b),
-    lu: (a,b) => b.nLu-a.nLu || d(a)-d(b)
+    dist: (a,b) => d(a)-d(b),
+    open: (a,b) => o(b)-o(a) || d(a)-d(b),
+    rating: (a,b) => (b.r.google_rating||0)-(a.r.google_rating||0) || d(a)-d(b),
+    lu: (a,b) => (b.nLu>0)-(a.nLu>0) || b.nLu-a.nLu || d(a)-d(b)
   }[key] || ((a,b) => d(a)-d(b));
   return [...hits].sort(cmp);
 }
@@ -886,8 +940,11 @@ function renderResults(){
   else {
     const nearest = sortHits(hits.filter(h => h.nLu > 0), 'dist')[0];
     cls = openLu.length ? 'yes' : 'later';
-    lead = `${sum.luDishes} ${sum.luDishes === 1 ? 'Gericht' : 'Gerichte'} für Lu an ${sum.luPlaces} ${sum.luPlaces === 1 ? 'Ort' : 'Orten'}.`;
+    lead = sum.safeDishes
+      ? `${sum.safeDishes} ${sum.safeDishes === 1 ? 'Gericht' : 'Gerichte'} ohne Käse für Lu an ${sum.luPlaces} ${sum.luPlaces === 1 ? 'Ort' : 'Orten'}.`
+      : `${sum.askDishes} ${sum.askDishes === 1 ? 'Gericht' : 'Gerichte'} für Lu – aber nur auf Nachfrage ohne Käse.`;
     const bits = [];
+    if (sum.safeDishes && sum.askDishes) bits.push(`${sum.askDishes} weitere nur auf Nachfrage ohne Käse.`);
     if (openLu.length) { const n = sortHits(openLu, 'dist')[0]; bits.push(`Jetzt offen und am nächsten: ${n.r.name} (${distText(n.r)}).`); }
     else bits.push(`Gerade hat keiner davon offen – am nächsten wäre ${nearest.r.name} (${nearest.os.text}).`);
     if (sum.dishes > sum.luDishes) bits.push(`${sum.dishes - sum.luDishes} weitere Treffer enthalten Fleisch, Fisch oder Käse.`);
@@ -907,6 +964,8 @@ function renderResults(){
 document.addEventListener('click', e => {
   const m = e.target.closest('[data-more]');
   if (m) { resState.expanded[m.dataset.more] = !resState.expanded[m.dataset.more]; renderResults(); }
+  const az = e.target.closest('[data-allzones]');
+  if (az) { listState.zone = null; renderList(); }
 });
 let aiBusy = false;
 function searchFailed(err){
@@ -920,17 +979,17 @@ async function doSearch(q){
 async function doSearchInner(q){
   resState.q = q; resState.expanded = {};
   const s = settings();
-  if (!s.key) { resState.source = 'einfache Wortsuche'; resState.res = runSearch(q, null); renderResults(); return; }
+  if (!s.key) { resState.source = 'einfache Wortsuche'; resState.res = searchAll(q, null); renderResults(); return; }
   $('#answer').innerHTML = `<div class="result"><div class="think"><span class="spinner"></span>Ich durchsuche alle Speisekarten nach „${esc(q)}“ …</div></div>`;
   aiBusy = true;
   try {
     const ai = await aiTerms(q);
-    resState.source = 'mit KI verstanden';
-    resState.res = runSearch(q, ai);
+    resState.source = 'mit KI erweitert';
+    resState.res = searchAll(q, ai);
   } catch (err) {
     if (err.message !== 'NOKEY') console.warn('KI-Fehler:', err.message);
     resState.source = err.message === 'NOKEY' ? 'einfache Wortsuche' : 'einfache Wortsuche (KI nicht erreichbar)';
-    resState.res = runSearch(q, null);
+    resState.res = searchAll(q, null);
   } finally { aiBusy = false; }
   renderResults();
 }
@@ -939,7 +998,7 @@ $('#ask').addEventListener('keydown', e => { if (e.key==='Enter' && !e.shiftKey)
 $('#examples').addEventListener('click', e => { const b = e.target.closest('[data-ex]'); if (!b) return; $('#ask').value = b.dataset.ex; $('#askform').requestSubmit(); });
 
 $('#q-open').addEventListener('click', () => { Object.assign(listState, {zone:'Zu Fuß', open:true, lu:false, cheap:false, kitchens:[], q:''}); const lq = $('#lq'); if (lq) lq.value=''; show('list'); });
-$('#q-photo').addEventListener('click', () => { if (!settings().key) { toast('Der Foto-Check ist gerade aus – Heisengorg kann ihn einschalten.', 4000); return; } $('#photo').click(); });
+$('#q-photo').addEventListener('click', () => { if (!settings().key) { toast('Der Foto-Check ist gerade aus – dafür fehlt der Schlüssel in den Einstellungen.', 4000); return; } $('#photo').click(); });
 $('#photo').addEventListener('change', async e => {
   const f = e.target.files && e.target.files[0]; if (!f) return;
   const out = $('#photo-out');
@@ -960,10 +1019,10 @@ const ZONES = ['Zu Fuß','Roda','Acharavi','Ausflug','Korfu-Stadt'];
 const ZLABEL = {'Korfu-Stadt':'Stadt'};
 const ZHINT = {'Alle':'Alle erfassten Orte im Norden der Insel und in Korfu-Stadt.', 'Zu Fuß':'Bis 20 Minuten zu Fuß vom Hotel.', 'Roda':'In Roda, aber weiter weg (20–60 Minuten zu Fuß oder kurzes Taxi).', 'Acharavi':'Nachbarort – Bus 5–10 Minuten oder Taxi ≈ 8–10 €.', 'Ausflug':'Sidari, Kassiopi, Old Perithia, Nordwesten – nur mit Bus oder Taxi.', 'Korfu-Stadt':'Korfu-Stadt, 1 h 15 mit dem Bus A3 – Tagesausflug.'};
 const listState = { zone:'Zu Fuß', open:false, lu:false, cheap:false, kitchens:[], q:'', sort:'score' };
-const hasLuFood = r => r.safe.length > 0 || (!r.menuUsable && (r.veg_no_cheese_dishes||[]).length > 0);
+const hasLuFood = r => r.safeMains.length > 0 || (!r.menuUsable && (r.veg_no_cheese_dishes||[]).length > 0);
 function renderZones(){
   $('#zones').innerHTML = ['Alle',...ZONES].map(z => `<button data-z="${esc(z)}" aria-pressed="${(listState.zone||'Alle')===z}">${esc(ZLABEL[z]||z)}</button>`).join('');
-  $('#zonehint').textContent = listState.q ? 'Gesucht wird in allen Orten.' : ZHINT[listState.zone||'Alle'];
+  $('#zonehint').textContent = ZHINT[listState.zone||'Alle'];
 }
 $('#zones').addEventListener('click', e => { const b = e.target.closest('[data-z]'); if (!b) return; listState.zone = b.dataset.z==='Alle' ? null : b.dataset.z; renderList(); });
 function renderToggles(){
@@ -979,8 +1038,8 @@ $('#toggles').addEventListener('click', e => {
   if (b.dataset.kitchens !== undefined) { openKitchens(); return; }
   listState[b.dataset.t] = !listState[b.dataset.t]; renderList();
 });
-let lqT = null, zoneBeforeSearch = null;
-$('#lq').addEventListener('input', e => { clearTimeout(lqT); lqT = setTimeout(() => { const q = e.target.value.trim(); if (q && !listState.q) { zoneBeforeSearch = listState.zone; listState.zone = null; } if (!q && listState.q) listState.zone = zoneBeforeSearch; listState.q = q; renderList(); }, 120); });
+let lqT = null;
+$('#lq').addEventListener('input', e => { clearTimeout(lqT); lqT = setTimeout(() => { listState.q = e.target.value.trim(); renderList(); }, 120); });
 $('#lreset').addEventListener('click', () => { Object.assign(listState, {zone:null, open:false, lu:false, cheap:false, kitchens:[], q:''}); $('#lq').value=''; renderList(); });
 $('#lsort').addEventListener('change', e => { listState.sort = e.target.value; renderList(); });
 function listMatches(){
@@ -1007,6 +1066,12 @@ function renderList(){
   $('#list').innerHTML = items.map(r => rcard(r, t)).join('');
   $('#lcount').textContent = items.length ? `${items.length} ${items.length===1?'Ort':'Orte'}` : '';
   $('#lempty').classList.toggle('hide', items.length>0);
+  const oz = $('#otherzones');
+  if (listState.zone) {
+    const keep = listState.zone; listState.zone = null; const all = listMatches().length; listState.zone = keep;
+    const more = all - items.length;
+    oz.innerHTML = more > 0 ? `In anderen Gegenden ${more === 1 ? 'gibt es 1 weiteren Ort' : `gibt es ${more} weitere Orte`} – <button class="lnk" type="button" data-allzones>alle zeigen</button>` : '';
+  } else oz.innerHTML = '';
 }
 /* Küchen-Auswahl: alle Küchen, die wirklich vorkommen, mit Anzahl */
 function openKitchens(){
@@ -1016,14 +1081,14 @@ function openKitchens(){
   sheetBody.innerHTML = `
     <div class="sheet-top"><span class="stitle">Küche</span><button class="iconbtn" data-close aria-label="Schließen">${ICON.x}</button></div>
     <h2 style="font-family:var(--display);font-size:1.5rem;font-weight:800">Küche</h2>
-    <p class="small muted" style="margin-top:4px">Mehrfachauswahl möglich. Ohne Auswahl werden alle Küchen gezeigt.</p>
+    <p class="small muted" style="margin-top:4px">Mehrfachauswahl möglich – gezeigt werden dann Orte mit mindestens einer der gewählten Küchen. Ohne Auswahl: alle.</p>
     <div class="klist">${list.map(([k,n]) => `<label class="krow"><input type="checkbox" value="${esc(k)}"${listState.kitchens.includes(k)?' checked':''}><span class="kn">${esc(k)}</span><span class="kc num">${n}</span></label>`).join('')}</div>
     <div class="row" style="margin-top:16px;gap:8px"><button class="btn primary" data-kdone>Fertig</button><button class="btn" data-kclear>Auswahl leeren</button></div>`;
   sheet.classList.add('open'); sheetOpen = true; sheetBody.scrollTop = 0; document.body.style.overflow='hidden'; history.pushState({sheet:'kitchens'},'');
-  const read = () => [...sheetBody.querySelectorAll('.klist input:checked')].map(i => i.value);
-  sheetBody.addEventListener('change', () => { listState.kitchens = read(); renderList(); });
+  const kl = $('.klist');
+  kl.addEventListener('change', () => { listState.kitchens = [...kl.querySelectorAll('input:checked')].map(i => i.value); renderList(); });
   $('[data-kdone]').addEventListener('click', () => closeSheet());
-  $('[data-kclear]').addEventListener('click', () => { sheetBody.querySelectorAll('.klist input').forEach(i => i.checked = false); listState.kitchens = []; renderList(); });
+  $('[data-kclear]').addEventListener('click', () => { kl.querySelectorAll('input').forEach(i => i.checked = false); listState.kitchens = []; renderList(); });
 }
 
 /* ================= SHEET (detail) ================= */
@@ -1121,8 +1186,8 @@ function openSettings(){
   sheetBody.innerHTML = `
     <div class="sheet-top"><span class="stitle">Einstellungen</span><button class="iconbtn" data-close aria-label="Schließen">${ICON.x}</button></div>
     <h2 style="font-family:var(--display);font-size:1.5rem;font-weight:800">Einstellungen</h2>
-    ${s.key ? `<div class="alert good"><span>${ICON.ok}</span><span>Alles eingerichtet – ihr müsst hier nichts tun. Die Suche versteht ganze Sätze, der Foto-Check funktioniert.</span></div>` : `<div class="alert"><span>${ICON.warn}</span><span>Die schlaue Suche ist gerade aus – die einfache Wortsuche funktioniert trotzdem. Heisengorg kann das einschalten.</span></div>`}
-    <details class="plain" style="margin-top:14px"><summary>Technik (für Heisengorg)</summary>
+    ${s.key ? `<div class="alert good"><span>${ICON.ok}</span><span>Alles eingerichtet – ihr müsst hier nichts tun. Die Suche versteht ganze Sätze, der Foto-Check funktioniert.</span></div>` : `<div class="alert"><span>${ICON.warn}</span><span>Die schlaue Suche ist gerade aus – die einfache Wortsuche funktioniert trotzdem.</span></div>`}
+    <details class="plain" style="margin-top:14px"><summary>Technik</summary>
       <p class="tiny muted" style="margin-top:6px">Die Suche schickt die Frage plus alle Speisekarten direkt aus dem Browser an Anthropic (Claude). ${s.key ? (s.ownKey ? 'Aktiv: eigener Schlüssel auf diesem Gerät.' : 'Aktiv: der in der App hinterlegte Schlüssel.') : 'Kein Schlüssel hinterlegt.'}</p>
       <div class="field"><label for="model">Modell</label><select id="model">${MODELS.map(([v,l])=>`<option value="${v}" ${v===s.model?'selected':''}>${l}</option>`).join('')}</select></div>
       <div class="field"><label for="key">Eigener Anthropic-Schlüssel (optional)</label><input id="key" type="password" placeholder="sk-ant-…" value="${esc(LS.get('lc_key',''))}" autocomplete="off" autocapitalize="off" spellcheck="false"><p class="tiny muted">Überschreibt nur auf diesem Gerät den hinterlegten Schlüssel. Leer lassen = hinterlegten Schlüssel nutzen.</p></div>
@@ -1148,7 +1213,7 @@ function show(v){
   window.scrollTo({top:0, behavior:'instant'});
 }
 $$('.nav button').forEach(b => b.addEventListener('click', () => show(b.dataset.v)));
-$('#near-more').addEventListener('click', () => { listState.zone='Zu Fuß'; listState.open=false; show('list'); });
+$('#near-more').addEventListener('click', () => { Object.assign(listState, {zone:'Zu Fuß', open:false, lu:false, cheap:false, kitchens:[], q:''}); const lq = $('#lq'); if (lq) lq.value=''; show('list'); });
 $('#plan-more').addEventListener('click', () => { show('wissen'); $$('#wseg button').forEach(x=>x.setAttribute('aria-pressed', String(x.dataset.w==='woche'))); ['bus','spick','woche'].forEach(k => $('#w-'+k).classList.toggle('hide', k!=='woche')); });
 
 /* ================= stats ================= */
