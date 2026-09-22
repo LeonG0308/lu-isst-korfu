@@ -901,7 +901,7 @@ function renderResults(){
     <div class="result-head ${cls}"><div><div class="lead">${esc(lead)}</div>${sub?`<div class="small" style="margin-top:4px">${esc(sub)}</div>`:''}</div></div>
     ${hits.length > 1 ? `<div class="sortbar"><label for="rsort">Sortieren</label><select id="rsort">${SORTS.map(([v,l])=>`<option value="${v}"${v===st.sort?' selected':''}>${l}</option>`).join('')}</select></div>` : ''}
     <div class="result-body">${cards}</div>
-    <div class="result-foot">Gesucht in allen ${R.reduce((n,r)=>n+r.menu.length,0).toLocaleString('de-DE')} erfassten Gerichten${terms.length?` nach: ${esc(terms.join(', '))}`:''} · ${esc(st.source)}</div></div>`;
+    <div class="result-foot" data-total="${sum.dishes}" data-places="${sum.places}">${sum.dishes} ${sum.dishes===1?'Treffer':'Treffer'} in allen ${R.reduce((n,r)=>n+r.menu.length,0).toLocaleString('de-DE')} erfassten Gerichten${terms.length?` · gesucht nach: ${esc(terms.join(', '))}`:''} · ${esc(st.source)}</div></div>`;
   const sel = $('#rsort'); if (sel) sel.addEventListener('change', e => { resState.sort = e.target.value; try { renderResults(); } catch(err){ searchFailed(err); } });
 }
 document.addEventListener('click', e => {
