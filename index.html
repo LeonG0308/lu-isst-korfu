@@ -153,7 +153,7 @@ form.ask textarea::placeholder{color:var(--muted);font-weight:500}
 .result-head.yes{background:var(--good-soft)}
 .result-head.later{background:var(--amber-soft)}
 .result-head.no{background:var(--warn-soft)}
-.result-body{padding:6px 0}
+.result-body{padding:10px 10px 2px;background:var(--bg)}
 .hit{display:grid;grid-template-columns:40px 1fr auto;gap:12px;align-items:start;padding:12px 16px;border-top:1px solid var(--line);text-align:left;width:100%}
 .hit:first-child{border-top:0}
 .hit .name{font-weight:800;font-size:1rem;line-height:1.2}
@@ -166,7 +166,7 @@ form.ask textarea::placeholder{color:var(--muted);font-weight:500}
 .hit .status{margin-top:6px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 .hit .status .meta{font-size:.8rem;color:var(--muted)}
 .hit .go{align-self:center;color:var(--muted)}
-.result-foot{padding:12px 16px;border-top:1px solid var(--line);font-size:.85rem;color:var(--muted)}
+.result-foot{padding:12px 14px;border-top:1px solid var(--line);font-size:.85rem;color:var(--muted);background:var(--surface)}
 .think{display:flex;align-items:center;gap:10px;padding:16px;color:var(--muted);font-size:.9rem}
 .spinner{width:18px;height:18px;border-radius:50%;border:2px solid var(--line-2);border-top-color:var(--accent);animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
@@ -306,15 +306,16 @@ details.plain[open] summary::after{transform:rotate(225deg)}
 .score[data-scoreinfo]{cursor:pointer}
 
 /* ---------- Suchergebnisse ---------- */
-.hit2{border-top:1px solid var(--line)}
-.hit2:first-child{border-top:0}
-.hit2-h{display:flex;gap:10px;align-items:flex-start;justify-content:space-between;width:100%;text-align:left;padding:12px 16px 4px}
+.hit2{background:var(--surface);border:1px solid var(--line);border-radius:16px;margin-bottom:10px;box-shadow:0 1px 2px rgba(16,26,31,.04);overflow:hidden}
+.hit2:first-child{border-top:1px solid var(--line)}
+.hit2-h{display:flex;gap:10px;align-items:flex-start;justify-content:space-between;width:100%;text-align:left;padding:13px 14px 8px;border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--surface-2) 45%,var(--surface))}
 .hit2-h .name{font-weight:800;font-size:1rem;line-height:1.2}
 .hit2-h .meta{font-size:.8rem;color:var(--muted);margin-top:3px}
 .hit2-h .st{margin-top:7px;display:flex;flex-wrap:wrap;gap:6px}
 .hit2-h .go{color:var(--muted);align-self:center}
-.drs{padding:2px 16px 12px}
-.dr{display:grid;grid-template-columns:20px 1fr auto;gap:8px;align-items:start;padding:7px 0;border-top:1px dashed var(--line)}
+.drs{padding:2px 14px 10px}
+.dgrp{font-size:.68rem;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--accent);padding:10px 0 2px}
+.dr{display:grid;grid-template-columns:20px 1fr auto;gap:8px;align-items:start;padding:8px 0;border-top:1px solid var(--line)}
 .dr:first-child{border-top:0}
 .dn{font-size:.92rem;line-height:1.35}
 .dwhy{font-size:.78rem;color:var(--muted);line-height:1.3;margin-top:2px}
@@ -322,7 +323,7 @@ details.plain[open] summary::after{transform:rotate(225deg)}
 .tagp{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:999px;font-size:.68rem;font-weight:800;background:var(--surface-2);color:var(--muted);white-space:nowrap}
 .tagp.amber{background:var(--amber-soft);color:var(--amber-ink)}
 .moreb{margin-top:6px;font-size:.84rem;font-weight:700;color:var(--accent);min-height:44px;text-align:left}
-.sortbar{display:flex;align-items:center;gap:10px;padding:10px 16px;border-top:1px solid var(--line);font-size:.85rem}
+.sortbar{display:flex;align-items:center;gap:10px;padding:10px 14px;border-top:1px solid var(--line);font-size:.85rem;background:var(--surface)}
 .sortbar label{color:var(--muted);font-weight:700;white-space:nowrap}
 .sortbar select{flex:1;background:var(--surface);border:1px solid var(--line-2);border-radius:10px;padding:8px 10px;font-size:.85rem;font-weight:700;min-height:44px}
 /* ---------- Küchen-Auswahl ---------- */
@@ -360,6 +361,37 @@ details.plain[open] summary::after{transform:rotate(225deg)}
   .rp-t{font-size:8pt;color:#444;text-align:right;overflow-wrap:anywhere}
   .rp-foot{margin-top:10pt;font-size:8.5pt;color:#555;border-top:.5pt solid #bbb;padding-top:4pt}
 }
+
+/* ---------- Lade-Animation: Speisekarten-Scanner ---------- */
+.think2{padding:22px 16px 20px;display:flex;flex-direction:column;align-items:center;gap:7px;text-align:center}
+.stage{position:relative;width:236px;height:166px;margin:0 auto 2px}
+.mcard{position:absolute;left:16px;top:10px;width:204px;height:140px;border-radius:14px;background:var(--surface);border:1.5px solid var(--line-2);box-shadow:0 12px 26px -14px rgba(13,110,128,.6);padding:11px 13px 8px;box-sizing:border-box;text-align:left;overflow:hidden}
+.mcard.c3{transform:translate(11px,11px) rotate(4deg);opacity:.45}
+.mcard.c2{transform:translate(5px,5px) rotate(2deg);opacity:.75}
+.mcard.c1{animation:dealin .34s cubic-bezier(.2,.7,.2,1) both}
+.mcard.c1.out{animation:dealout .32s cubic-bezier(.6,0,.8,.4) forwards}
+.mname{font-family:var(--display);font-weight:800;font-size:.76rem;line-height:1.15;color:var(--accent-soft-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:6px;padding-bottom:5px;border-bottom:1.5px solid var(--accent-soft)}
+.ml{display:flex;align-items:center;gap:6px;height:20px;font-size:.66rem;line-height:1;color:var(--ink-2);padding:0 5px;border-radius:6px;margin:0 -5px;transition:background .18s,color .18s}
+.ml .mt{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:78%}
+.ml .mdots{flex:1;border-bottom:1px dotted var(--line-2);min-width:8px;transform:translateY(2px)}
+.ml .mk{width:12px;height:12px;border-radius:50%;border:1.5px solid var(--line-2);flex:none;display:grid;place-items:center;font-size:8px;font-weight:800;line-height:1;color:var(--on-good);transition:background .18s,border-color .18s}
+.ml.scan{background:var(--accent-soft);color:var(--accent-soft-ink)}
+.ml.ok .mk{background:var(--good);border-color:var(--good)}
+.ml.ok .mk::after{content:"✓"}
+.ml.no .mk{background:var(--surface-2);border-color:var(--line-2);color:var(--muted)}
+.ml.no .mk::after{content:"–"}
+.lens{position:absolute;left:0;top:0;width:34px;height:34px;border-radius:50%;border:3px solid var(--spark);background:color-mix(in srgb,var(--spark) 12%,transparent);box-shadow:0 0 0 3px color-mix(in srgb,var(--spark) 18%,transparent),0 8px 16px -8px rgba(0,0,0,.45);transform:translate(150px,52px);transition:transform .22s cubic-bezier(.3,.7,.3,1);will-change:transform;pointer-events:none}
+.lens::after{content:"";position:absolute;width:14px;height:5px;border-radius:3px;background:var(--spark);right:-12px;bottom:-6px;transform:rotate(45deg)}
+.tq{font-family:var(--display);font-weight:800;font-size:1.05rem;color:var(--ink);margin-top:2px}
+.tcount{font-size:.78rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.tstat{font-size:.86rem;color:var(--ink-2);min-height:1.3em}
+.tstat.in{animation:fadeup .35s ease-out}
+.tbar{width:180px;height:5px;border-radius:3px;background:var(--surface-2);overflow:hidden;margin-top:4px}
+.tbar i{display:block;height:100%;width:4%;border-radius:3px;background:linear-gradient(90deg,var(--accent),var(--spark));transition:width .25s linear}
+@keyframes dealin{from{opacity:0;transform:translate(0,16px) scale(.96)}to{opacity:1;transform:none}}
+@keyframes dealout{to{opacity:0;transform:translate(-52px,-28px) rotate(-12deg)}}
+@keyframes fadeup{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.mcard.c1,.mcard.c1.out{animation:none}.mcard.c1.out{opacity:1}.lens{transition:none}.tstat.in{animation:none}}
 </style>
 </head>
 <body>
@@ -488,6 +520,7 @@ const luOf = it => {
   const txt = (it.ck||'') + ' ' + (it.d||'') + ' ' + (it.dd||'') + ' ' + it.n + ' ' + (it.de||'');
   const isBurger = /burger/i.test(it.n + ' ' + (it.de||''));
   if (isBurger && !REAL_CHEESE.test(txt)) return 'safe';
+  if (it.ch === 'unknown' && it.dessert && !REAL_CHEESE.test(txt) && !/cheese|kaese|käse|quark|frischk|mascarpone|ricotta/i.test(txt)) return 'safe'; // Süßes ohne Käseangabe: kein Käse
   if (it.ch === 'contains') {
     if (REAL_CHEESE.test(txt)) return 'cheese';
     if (/mozz|fior di latte/i.test(txt)) return 'mozz';
@@ -644,7 +677,7 @@ const SYN = {
   mexikanisch:['mexican','tex-mex','burrito','fajita','taco','nachos','quesadilla','enchilada','mexikanisch'], burrito:['burrito','burritos'], fajitas:['fajita','fajitas'], tacos:['taco','tacos'],
   chinesisch:['chinese','noodles','sweet and sour','spring roll','chinesisch'], asiatisch:['asian','noodles','soy','wok','asiatisch'], frühlingsrollen:['spring roll','spring rolls','frühlingsroll'],
   italienisch:['italian','pizza','pasta','italienisch'], griechisch:['greek','taverna','griechisch'],
-  crêpe:['crepe','crepes','crêpe','crêpes','pancake'], crepes:['crepe','crêpe','crepes'], pfannkuchen:['pancake','pancakes','crepe','crêpe','pfannkuchen'], waffeln:['waffle','waffles','waffel'],
+  crêpe:['crepe','crepes','crêpe','crêpes','pancake','pancakes','pfannkuchen','galette','tiganites'], crepes:['crepe','crepes','crêpe','crêpes','pancake','pancakes','pfannkuchen','galette','tiganites'], pfannkuchen:['pancake','pancakes','crepe','crêpe','crepes','pfannkuchen','tiganites'], waffeln:['waffle','waffles','waffel'],
   eis:['ice cream','icecream','gelato','sorbet','kulfi','eis','pagoto','eisbecher','sundae','vanilleeis','schokoeis','fruchteis','softeis','banana split','eiskugel'], sorbet:['sorbet'], kuchen:['cake','pie','tart','kuchen','torte','cheesecake','portokalopita','karidopita','ravani','brownie','brownies','gateau','gâteau'], schokolade:['chocolate','schokolade','schoko','nutella','praline','brownie'],
   dessert:['dessert','desserts','cake','baklava','halva','loukoumades','ice cream','sweet','nachtisch','nachspeise'], süßes:['dessert','sweet','cake','chocolate','ice cream','baklava','kuchen','eis','süß','waffle','pancake'], süß:['dessert','sweet','cake','chocolate','ice cream','süß'], nachtisch:['dessert','cake','ice cream','baklava','nachtisch'],
   baklava:['baklava','baklavas'], halva:['halva','halvas'], loukoumades:['loukoumades','honey balls','loukoumathes'],
@@ -679,7 +712,7 @@ const INGREDIENT_WORDS = new Set(['pilze','pilz','champignons','champignon','tom
 const FLAG_WORDS = {fisch:'fish',fish:'fish',meeresfruechte:'fish',seafood:'fish',fischgericht:'fish',fischgerichte:'fish',fleisch:'meat',meat:'meat',fleischgericht:'meat',fleischgerichte:'meat'};
 const MODIFIERS = {gegrillt:['grilled','grill'],gegrillte:['grilled','grill'],gegrilltes:['grilled','grill'],gegrillter:['grilled','grill'],grilled:['grilled','grill'],gebacken:['baked','oven-baked','roasted','oven baked'],gebackene:['baked','oven-baked','roasted'],gebackenes:['baked','oven-baked','roasted'],gebackener:['baked','roasted'],baked:['baked','roasted'],frittiert:['fried','deep-fried','deep fried'],frittierte:['fried','deep-fried'],frittiertes:['fried','deep-fried'],fried:['fried'],gebraten:['fried','sauteed','sautéed','roasted','pan-fried'],gebratene:['fried','sauteed','roasted'],gebratenes:['fried','sauteed','roasted'],gebratener:['fried','sauteed','roasted'],geschmort:['braised','stewed','slow-cooked'],geschmorte:['braised','stewed'],geschmortes:['braised','stewed'],gefuellt:['stuffed','filled'],gefuellte:['stuffed','filled'],gefuelltes:['stuffed','filled'],gefuellter:['stuffed','filled'],stuffed:['stuffed','filled'],hausgemacht:['homemade','home made'],hausgemachte:['homemade'],frisch:['fresh'],frische:['fresh'],frischer:['fresh'],frisches:['fresh'],warm:['warm','hot'],warme:['warm','hot'],warmer:['warm','hot'],warmes:['warm','hot']};
 const SIDE_TYPES = /^(kartoffelbrei|kartoffelpueree|kartoffel|kartoffeln|pommes|reis|salat|gemuese|ofengemuese|brot|knoblauchbrot|pita|tzatziki|hummus|fava|bohnen|riesenbohnen|ofenkartoffel|oliven|joghurt|skordalia|sauce|sosse|dip|dips|pilze|champignons|spinat|tomaten|paprika|zwiebeln|kaese|feta|mozzarella|ei|eier|avocado|rucola|kapern|schinken|speck|bacon)$/;
-const PHRASES = {greeksalad:['greek salad','horiatiki','bauernsalat','griechischer salat','village salad','choriatiki'], griechischersalat:['greek salad','horiatiki','bauernsalat','griechischer salat','choriatiki'], griechischesalat:['greek salad','horiatiki','bauernsalat','griechischer salat'],
+const PHRASES = {kinderbueno:['bueno','kinder bueno'], greeksalad:['greek salad','horiatiki','bauernsalat','griechischer salat','village salad','choriatiki'], griechischersalat:['greek salad','horiatiki','bauernsalat','griechischer salat','choriatiki'], griechischesalat:['greek salad','horiatiki','bauernsalat','griechischer salat'],
   garlicbread:['garlic bread','knoblauchbrot'], springrolls:['spring roll','spring rolls','frühlingsroll'], springroll:['spring roll','spring rolls','frühlingsroll'],
   beanstoast:['beans on toast'], fishchips:['fish and chips','fish & chips'], fishandchips:['fish and chips','fish & chips'],
   clubsandwich:['club sandwich','club'], frenchfries:['french fries','fries','chips','pommes'], icecream:['ice cream','gelato','eis','eisbecher'],
@@ -693,6 +726,7 @@ let REV = null;
 const revSyn = () => { if (REV) return REV; REV = new Map(); Object.keys(SYN).forEach(k => SYN[k].forEach(t => { const nt = norm(t); if (!REV.has(nt)) REV.set(nt, []); REV.get(nt).push(k); })); return REV; };
 function growTerm(w, set){
   set.add(w);
+  if (w.includes('-')) { set.add(w.replace(/-/g, ' ')); set.add(w.replace(/-/g, '')); }
   const base = stem(w);
   let exact = false;
   Object.keys(SYN).forEach(k => { const nk = norm(k); if (nk === w || nk === base) { exact = true; SYN[k].forEach(t => set.add(norm(t))); } });
@@ -765,9 +799,13 @@ function understandLocal(q){
     words.push(w);
   });
   // feste Gerichtsnamen aus mehreren Wörtern ("greek salad", "garlic bread") als ein Konzept
-  const joined = words.join('');
-  const phrase = Object.keys(PHRASES).find(k => words.length > 1 && norm(k) === joined);
-  if (phrase) { concepts.push({kind:'dish', terms: PHRASES[phrase].map(norm), label: words.join(' ')}); return {concepts, exclude, vague:false, words}; }
+  const wordsAll = words.slice();
+  for (let i = 0; i + 1 < words.length; i++) {
+    const pair = words[i] + words[i + 1];
+    const key = Object.keys(PHRASES).find(k => norm(k) === pair);
+    if (key) { concepts.push({kind:'dish', terms: PHRASES[key].map(norm), label: words[i] + ' ' + words[i + 1], known: true}); words.splice(i, 2); i--; }
+  }
+  if (concepts.length && !words.length) return {concepts, exclude, vague:false, words: wordsAll};
   const expanded = [];
   words.forEach(w => { const sp = splitCompound(w); if (sp) { expanded.push(...sp); return; } const fz = fuzzyWord(w); expanded.push(fz || w); });
   for (let i = 0; i < expanded.length; i++) {
@@ -788,11 +826,13 @@ function understandLocal(q){
     const s = new Set(); growTerm(w, s);
     const base = stem(w);
     const kind = (INGREDIENT_WORDS.has(w) || INGREDIENT_WORDS.has(base) || ingredientNext.has(w) || (i > 0 && ingredientNext.has(words[words.length-1]) && w === expanded[expanded.length-1])) ? 'ingredient' : 'dish';
-    concepts.push({kind, terms:[...s], label: w});
+    concepts.push({kind, terms:[...s], label: w, known: KNOWN(w)});
   }
-  return {concepts, exclude, vague: concepts.length === 0 || concepts.every(c => c.kind === 'attribute' && ['light','warm','cold'].includes(c.attr)), words};
+  return {concepts, exclude, vague: concepts.length === 0 || concepts.every(c => c.kind === 'attribute' && ['light','warm','cold'].includes(c.attr)), words: wordsAll};
 }
 /* KI-Antwort in dieselbe Struktur bringen; eigene Synonyme dazu, damit nichts verloren geht */
+let SYN_VALUES = null;
+const synValues = () => SYN_VALUES || (SYN_VALUES = new Set(Object.values(SYN).flat().map(t => norm(t))));
 function understandAI(q, ai){
   const loc = understandLocal(q);
   if (!ai || !Array.isArray(ai.concepts) || !ai.concepts.length) return loc;
@@ -814,20 +854,59 @@ function understandAI(q, ai){
   }).filter(c => c.kind === 'attribute' ? !!c.attr : c.kind === 'cuisine' ? (c.kitchen || c.terms.length) : c.kind === 'flag' ? true : c.terms.length)
     .filter((c, i, arr) => c.kind !== 'attribute' || arr.findIndex(x => x.kind === 'attribute' && x.attr === c.attr) === i);
   if (!concepts.length) return loc;
-  const aiConcrete = concepts.some(c => c.kind !== 'attribute');
-  const locConcrete = loc.concepts.some(c => c.kind !== 'attribute');
-  if (!aiConcrete && locConcrete && !loc.vague) return loc;
-  // Attribut-Konzepte der lokalen Analyse behalten (z. B. "ohne Käse"), falls die KI sie vergisst
-  loc.concepts.filter(c => c.kind === 'attribute' && !concepts.some(x => x.kind === 'attribute' && x.attr === c.attr)).forEach(c => concepts.push(c));
+  // Gerüst = was der Nutzer wörtlich gesagt hat. Die KI darf Begriffe ergänzen, aber kein Wort des Nutzers wegverallgemeinern
+  // ("T-Bone Steak" bleibt T-Bone, "Bueno Crêpes" bleibt Bueno).
+  const merged = loc.concepts.map(c => Object.assign({}, c, c.terms ? {terms: c.terms.slice()} : {}));
+  const used = new Set();
+  const overlaps = (c, a) => {
+    if (!c.terms || !a.terms) return false;
+    const cl = norm(c.label||''), al = norm(a.label||'');
+    if (cl && al && (cl === al || al.split(/\s+/).includes(cl) || cl.split(/\s+/).includes(al))) return true;
+    return c.terms.some(t => a.terms.includes(t)) || a.terms.some(t => t === cl || t.split(/\s+/).includes(cl));
+  };
+  concepts.forEach((a, i) => {
+    let m = null;
+    if (a.kind === 'attribute') m = merged.find(c => c.kind === 'attribute' && c.attr === a.attr);
+    else if (a.kind === 'cuisine') m = merged.find(c => c.kind === 'cuisine');
+    else if (a.kind === 'flag') m = merged.find(c => c.kind === 'flag' && c.flag === a.flag);
+    else m = merged.find(c => (c.kind === 'dish' || c.kind === 'ingredient') && overlaps(c, a));
+    if (!m) return;
+    used.add(i);
+    if (m.terms && a.terms && m.kind !== 'flag') {
+      const w = norm(m.label||'');
+      // Die KI darf Vokabeln ergänzen, die die App nicht kennt (Übersetzungen, Marken, Schreibvarianten) – aber keine Wörter,
+      // die die App schon als anderes Konzept kennt (Oberbegriffe: Kartoffelbrei → „kartoffel“, Frühstück → „toast“).
+      const near = t => t.includes(w) || (w.includes(t) && t.length + 3 >= w.length);
+      const GEN2 = /^(pasta|nudeln|noodles|salad|salads|salat|pizza|pizzas|soup|soups|suppe|meat|fleisch|fish|fisch|vegetable|vegetables|veggies|gemuese|dessert|desserts|sweet|sweets|cake|cakes|kuchen|bread|brot|rice|reis|potato|potatoes|kartoffel|kartoffeln|cheese|kaese|sauce|dip|dips|snack|snacks|main|mains|food|essen|gericht|gerichte|dish|dishes|drink|drinks|brunch|breakfast|lunch|dinner|starter|starters|appetizer|appetizers|vorspeise|vorspeisen|side|sides|beilage|beilagen)$/;
+      const others = merged.filter(c => c !== m && (c.kind === 'dish' || c.kind === 'ingredient' || c.kind === 'flag')).map(c => norm(c.label||'')).filter(o => o.length >= 4);
+      const INGR_EXTRA = /^(bacon|speck|sausages?|wurst|wuerstchen|eggs?|eier|ei|butter|jam|marmelade|toasts?|toasties?|milk|milch|cream|sahne|sugar|zucker|syrup|sirup|oil|olive oil|lettuce|cucumber|gurken?|onions?|garlic|tomatoes|peppers?|chips|fries|pommes|crisps|beans|hash browns?|mushrooms?|pilze|croissants?|bread|bagels?|muffins?|yogurt|yoghurt|joghurt|fruit|fruits|obst|nuts|granola|muesli|cereal|cereals|porridge|oats|oatmeal)$/;
+      const ingr = t => { const b = stem(t); return INGREDIENT_WORDS.has(t) || INGREDIENT_WORDS.has(b) || INGREDIENT_WORDS.has(t + 's') || INGREDIENT_WORDS.has(t + 'n') || INGREDIENT_WORDS.has(t + 'en') || INGR_EXTRA.test(t) || SIDE_TYPES.test(t); };
+      // "fremd" = die App kennt das Wort schon als anderes Konzept (Oberbegriff, Zutat, anderes Gericht) – oder es enthält ein weiteres Wort der Anfrage (= Verallgemeinerung)
+      const MOD2 = /^(grilled|grill|baked|fried|roasted|stuffed|braised|crispy|caramelized|caramelised|sauteed|sautéed|fresh|homemade|gegrillt\w*|gebacken\w*|frittiert\w*|gebraten\w*|geschmort\w*|gefuellt\w*|geroestet\w*|roest\w*|knusprig\w*|frisch\w*)$/;
+      // "Zubereitung + Zutat" ("fried onions") ist eine Zutat, kein Gericht
+      const modIngr = t => { const p = t.split(/\s+/); return p.length >= 2 && MOD2.test(p[0]) && ingr(p[p.length - 1]); };
+      const foreign = t => KNOWN(t) || synValues().has(t) || synValues().has(stem(t)) || ingr(t) || modIngr(t) || GEN2.test(t) || others.some(o => t.includes(o));
+      a.terms.forEach(t => { if (!w || near(t) || !foreign(t)) { if (!m.terms.includes(t)) m.terms.push(t); } });
+      if (m.kind === 'dish' && a.kind === 'ingredient' && !m.phrase) m.kind = 'ingredient';
+      if (a.phrase) { m.phrase = true; m.kind = 'dish'; }
+    }
+  });
+  // KI-Konzepte ohne lokales Gegenstück: nur Eigenschaften, Küche, Fisch/Fleisch (Verständnis), keine neuen Gerichte
+  concepts.forEach((a, i) => {
+    if (used.has(i)) return;
+    if (a.kind === 'attribute' && !merged.some(c => c.kind === 'attribute' && c.attr === a.attr)) merged.push(a);
+    else if (a.kind === 'cuisine' && !merged.some(c => c.kind === 'cuisine') && !merged.some(c => c.kind === 'dish' || c.kind === 'ingredient')) merged.push(a);
+    else if (a.kind === 'flag' && !merged.some(c => c.kind === 'flag')) merged.push(a);
+  });
   const exclude = new Set(loc.exclude); (ai.exclude||[]).forEach(t => growTerm(norm(t), exclude));
-  if ([...exclude].some(x => /^(fleisch|meat|fisch|fish|chicken|pork|beef|lamb|bacon|ham|sausage|seafood|prawn|prawns|shrimp|shrimps)$/.test(x)) && !concepts.some(c => c.attr === 'vegetarian')) concepts.push({kind:'attribute', attr:'vegetarian', label:'ohne Fleisch & Fisch'});
-  const concrete = concepts.some(c => c.kind !== 'attribute' || !['light','warm','cold'].includes(c.attr));
-  return {concepts, exclude:[...exclude], vague: !concrete, words: loc.words, ai:true};
+  if ([...exclude].some(x => /^(fleisch|meat|fisch|fish|chicken|pork|beef|lamb|bacon|ham|sausage|seafood|prawn|prawns|shrimp|shrimps)$/.test(x)) && !merged.some(c => c.attr === 'vegetarian')) merged.push({kind:'attribute', attr:'vegetarian', label:'ohne Fleisch & Fisch'});
+  const concrete = merged.some(c => c.kind !== 'attribute' || !['light','warm','cold'].includes(c.attr));
+  return {concepts: merged, exclude:[...exclude], vague: !concrete, words: loc.words, ai:true};
 }
 
 const ZONE_W = {'Zu Fuß':1, 'Roda':.9, 'Acharavi':.65, 'Korfu-Stadt':.3, 'Ausflug':.3};
 const escRe = x => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-const hay = (h, x) => h.includes(x) && (x.length > 5 || new RegExp('(^|[^a-z])' + escRe(x) + '($|[^a-z])').test(h));
+const hay = (h, x) => h.includes(x) && (x.length > 5 || new RegExp('(^|[^a-z])' + escRe(x) + (x.length >= 4 ? '(s|es)?' : '') + '($|[^a-z])').test(h));
 // Namen: Begriff auch als Wortende eines Kompositums ("gemuesepizza", "tomatensuppe"); Sektionen: auch als Wortanfang ("eisbecher")
 const SUFFIX_HEADS = /^(pizza|salat|suppe|pasta|toast|brot|kuchen|torte|fisch|fleisch|burger|braten|auflauf|gemuese|kartoffeln?|kartoffelbrei|nudeln|sauce|sosse|creme|mousse|pfannkuchen|platte|teller|risotto|sandwich|wurst|kaese|schnitzel|filet|steak|salad|soup|cake|pie|bread|curry|wrap|omelett|omelette|spiess|puree|pueree)$/;
 const hayName = (h, x) => hay(h, x) || (SUFFIX_HEADS.test(x) && new RegExp('(^|[^a-z])[a-z]{3,}' + escRe(x) + '($|[^a-z])').test(h));
@@ -1021,6 +1100,37 @@ function searchAll(q, ai){
   for (let k = core.length - 1; k >= 1; k--) { const r2 = mk([...core.slice(0, k), ...cuisine], [...core.slice(k), ...attrsC].map(c => c.label).join(', ')); if (r2) return r2; }
   return res;
 }
+/* "Pizza und Pasta" → zwei eigenständige Gerichte → nur Lokale, die beides auf der Karte haben */
+function splitConjunction(q){
+  const raw = q.trim();
+  if (!/\s(und|and|&|\+|sowie)\s/i.test(raw)) return null;
+  // feste Namen mit "and" ("Fish and Chips", "Mac and Cheese") sind ein Gericht, keine Verknüpfung
+  const toks = norm(raw).split(/\s+/);
+  for (let i = 1; i + 1 < toks.length; i++) if (/^(und|and|&|\+|sowie)$/.test(toks[i]) && (PHRASES[toks[i-1] + toks[i] + toks[i+1]] || PHRASES[toks[i-1] + toks[i+1]])) return null;
+  const parts = raw.split(/\s(?:und|and|&|\+|sowie)\s/i).map(x => x.trim()).filter(Boolean);
+  if (parts.length < 2 || parts.length > 3) return null;
+  const us = parts.map(p => understandLocal(p));
+  const dishy = u => u.concepts.some(c => c.kind === 'dish' || c.kind === 'flag' || c.kind === 'cuisine');
+  if (!us.every(dishy)) return null;                                   // "vegetarisch und ohne Käse" bleibt eine Anfrage
+  if (/\b(mit|with|ohne|without)\b/i.test(parts[0]) && !dishy(us[1])) return null; // "Pizza mit Pilzen und Oliven" = Zutatenliste
+  return parts;
+}
+function searchConj(parts, ais){
+  const results = parts.map((p, i) => searchAll(p, ais[i] || null));
+  const maps = results.map(r => new Map((r.hits||[]).map(h => [h.r.id, h])));
+  const common = [...maps[0].keys()].filter(id => maps.every(m => m.has(id)));
+  const hits = common.map(id => {
+    const hs = maps.map(m => m.get(id));
+    const items = [], seen = new Set();
+    hs.forEach((h, k) => h.items.forEach(x => { if (!seen.has(x.it)) { seen.add(x.it); items.push(Object.assign({}, x, {part: k})); } }));
+    const matched = [].concat(...hs.map(h => h.matched || []));
+    const nLu = items.length ? items.filter(x => !x.comp && (luOK(x) || luMaybe(x))).length : hs.reduce((n, h) => n + h.nLu, 0);
+    return Object.assign({}, hs[0], {items, matched, nAll: items.length || matched.length, nLu, parts: hs.map(h => h.nAll)});
+  });
+  const counts = results.map(r => (r.sum && r.sum.ownPlaces) || (r.hits || []).length);
+  const U = {concepts: [].concat(...results.map(r => (r.U && r.U.concepts) || [])), exclude: [], vague: false, words: []};
+  return {hits, sum: sumUp(hits, {}), U, t: results[0].t, conj: {parts, counts}};
+}
 const SORTS = [['dist','Nächste zuerst'],['lu','Für Lu geeignete zuerst'],['open','Jetzt offene zuerst'],['rating','Beste Bewertung']];
 function sortHits(hits, key){
   const d = h => h.r.dist_m ?? 9e9;
@@ -1164,7 +1274,9 @@ function hitCard(h, t){
     const open = resState.expanded[r.id];
     const lim = h.nLu ? 5 : 2;
     const show = open ? list : list.slice(0, lim);
-    body = show.map(dishRow).join('');
+    const conj = resState.res && resState.res.conj;
+    if (conj) { let last = -1; body = show.map(x => { const g = (x.part !== last) ? `<div class="dgrp">${esc(conj.parts[x.part] || '')}</div>` : ''; last = x.part; return g + dishRow(x); }).join(''); }
+    else body = show.map(dishRow).join('');
     if (list.length > lim) body += `<button class="moreb" data-more="${r.id}">${open ? 'weniger zeigen' : `alle ${list.length} Treffer zeigen`}</button>`;
   } else {
     body = (h.matched||[]).slice(0,3).map(d => `<div class="dr">${FL.ask}<div class="dn"><b>${esc(d)}</b><span class="tagp">laut Recherche</span></div><div></div></div>`).join('')
@@ -1190,18 +1302,42 @@ function renderResults(){
   else if (sum.drinkQ) { cls = 'yes'; lead = `„${st.q}“ gibt es ${sum.dishes}× an ${sum.places} ${sum.places === 1 ? 'Ort' : 'Orten'}.`; sub = ''; }
   else if (res.U && res.U.vague) { cls = 'yes'; lead = `Ideen für „${st.q}“: ${sum.luDishes} ${sum.luDishes === 1 ? 'Gericht' : 'Gerichte'} an ${sum.luPlaces} ${sum.luPlaces === 1 ? 'Ort' : 'Orten'}.`; sub = 'Nur Gerichte, die Lu essen kann – sortiert nach Entfernung.'; }
   else if (!sum.ownDishes && sum.compDishes) { cls = 'later'; lead = `„${res.relaxed && res.keptLabel ? res.keptLabel : st.q}“ gibt es nicht als eigenes Gericht – nur als Beilage oder Bestandteil (${sum.compDishes}×).`; sub = 'Die Gerichte stehen unten; für Lu sind sie meist nicht geeignet.'; }
+  else if (res.U && res.U.concepts.length && res.U.concepts.every(c => c.kind === 'attribute')) {
+    const attrs = res.U.concepts.map(c => c.attr);
+    const ADJ = {sweet:'süße', vegetarian:'vegetarische', vegan:'vegane', spicy:'scharfe', light:'leichte', warm:'warme', cold:'kalte'};
+    const adjs = attrs.map(a => ADJ[a]).filter(Boolean);
+    const noun = attrs.includes('main') ? 'Hauptgerichte' : attrs.includes('drink') ? 'Getränke' : 'Gerichte';
+    const what = `${adjs.join(', ')} ${noun}${attrs.includes('cheese_free') ? ' ohne Käse' : ''}`.trim();
+    cls = openLu.length ? 'yes' : 'later';
+    lead = `${sum.ownDishes} ${what} an ${sum.ownPlaces} ${sum.ownPlaces === 1 ? 'Ort' : 'Orten'}.`;
+    const other = Math.max(0, sum.ownDishes - sum.safeDishes - sum.askDishes);
+    const bits = [!other && !sum.askDishes ? `Für Lu: alle ${sum.safeDishes} ohne Käse.` : `Für Lu: ${sum.safeDishes} ohne Käse${sum.askDishes ? ` · ${sum.askDishes} nur auf Nachfrage` : ''}${other ? ` · ${other} nichts für Lu` : ''}.`];
+    if (openLu.length) { const n = sortHits(openLu, 'dist')[0]; bits.push(`Jetzt offen und am nächsten: ${n.r.name} (${distText(n.r)}).`); }
+    sub = bits.join(' ');
+  }
+  else if (res.conj) {
+    const P = res.conj.parts.map(p => `„${p}“`);
+    if (!hits.length) { cls = 'no'; lead = `Kein Lokal hat ${P.join(' und ')} zusammen auf der Karte.`; sub = res.conj.parts.map((p, i) => `${P[i]} allein gibt es an ${res.conj.counts[i]} ${res.conj.counts[i] === 1 ? 'Ort' : 'Orten'}`).join(', ') + '.'; }
+    else {
+      cls = openLu.length ? 'yes' : 'later';
+      lead = `${P.join(' und ')} gibt es zusammen an ${hits.length} ${hits.length === 1 ? 'Lokal' : 'Lokalen'}.`;
+      const other = Math.max(0, sum.ownDishes - sum.safeDishes - sum.askDishes);
+      const bits = [`Für Lu: ${sum.safeDishes} ohne Käse${sum.askDishes ? ` · ${sum.askDishes} nur auf Nachfrage` : ''}${other ? ` · ${other} nichts für Lu` : ''}.`];
+      if (openLu.length) { const n = sortHits(openLu, 'dist')[0]; bits.push(`Jetzt offen und am nächsten: ${n.r.name} (${distText(n.r)}).`); }
+      sub = bits.join(' ');
+    }
+  }
   else {
     const nearest = sortHits(hits.filter(h => h.nLu > 0), 'dist')[0];
     cls = openLu.length ? 'yes' : 'later';
     const nOwn = sum.ownDishes, nPl = sum.ownPlaces;
     const shown = res.relaxed && res.keptLabel ? res.keptLabel : st.q;
-    lead = `„${shown}“ gibt es ${nOwn}× an ${nPl} ${nPl === 1 ? 'Ort' : 'Orten'} – ${sum.safeDishes ? `${sum.safeDishes} davon für Lu ohne Käse` : `${sum.askDishes} für Lu nur auf Nachfrage`}.`;
-    const bits = [];
-    if (sum.safeDishes && sum.askDishes) bits.push(`${sum.askDishes} weitere nur auf Nachfrage ohne Käse.`);
+    lead = `„${shown}“ gibt es ${nOwn}× an ${nPl} ${nPl === 1 ? 'Ort' : 'Orten'}.`;
+    const other = Math.max(0, nOwn - sum.safeDishes - sum.askDishes);
+    const bits = [`Für Lu: ${sum.safeDishes} ohne Käse${sum.askDishes ? ` · ${sum.askDishes} nur auf Nachfrage` : ''}${other ? ` · ${other} nichts für Lu (Fleisch, Fisch oder Käse)` : ''}.`];
     if (sum.compDishes) bits.push(`${sum.compDishes} weitere nur als Beilage.`);
     if (openLu.length) { const n = sortHits(openLu, 'dist')[0]; bits.push(`Jetzt offen und am nächsten: ${n.r.name} (${distText(n.r)}).`); }
-    else bits.push(`Gerade hat keiner davon offen – am nächsten wäre ${nearest.r.name} (${nearest.os.text}).`);
-    if (sum.dishes > sum.luDishes) bits.push(`${sum.dishes - sum.luDishes} weitere Treffer enthalten Fleisch, Fisch oder Käse.`);
+    else if (nearest) bits.push(`Gerade hat keiner davon offen – am nächsten wäre ${nearest.r.name} (${nearest.os.text}).`);
     sub = bits.join(' ');
   }
   if (res.sum && res.sum.veganQ) sub += ' ✓ heißt „ohne Käse“, nicht zwingend vegan – bei Ei, Joghurt oder Honig kurz fragen.';
@@ -1235,33 +1371,100 @@ function searchFailed(err){
   console.error('Suche fehlgeschlagen:', err);
   $('#answer').innerHTML = `<div class="result"><div class="result-head no"><div><div class="lead">Beim Suchen ist etwas schiefgegangen.</div><div class="small" style="margin-top:4px">Versuch es bitte mit einem anderen Wort – oder lade die Seite neu.</div></div></div></div>`;
 }
+let searchSeq = 0;
 async function doSearch(q){
-  try { await doSearchInner(q); } catch(err){ searchFailed(err); }
+  const seq = ++searchSeq;
+  try { await doSearchInner(q, seq); } catch(err){ if (seq === searchSeq) searchFailed(err); }
 }
-async function doSearchInner(q){
+async function doSearchInner(q, seq){
   if (/^#dbg\s/.test(q) && (location.protocol === 'file:' || /^(localhost|127\.)/.test(location.hostname))) {
     const m = q.match(/^#dbg\s+(\d+)\s+(\d+)\s+(.+)$/); if (m) { const r = R[+m[1]], it = r && r.menu[+m[2]]; const U = understandLocal(m[3]);
       const attrs = U.concepts.filter(c => c.kind === 'attribute').map(c => c.attr);
       const fl = {drinkQ:false, sweetQ:false, dessertish:true, savoryQ:false, sideQ:false, pastaQ:false, exMeat:false, exFish:false, exCheese:attrs.includes('cheese_free')};
       const res = it ? matchItem(it, U.concepts.filter(c => c.kind !== 'cuisine'), U.exclude, fl) : null;
       document.body.dataset.dbg = JSON.stringify({item: it && {n: it.n, de: it.de, s: it.s, sde: it.sde, drink: it.drink, dessert: it.dessert, side: it.side, extra: it.extra, main: it.main, lu: it.lu, veg: it.veg, fish: it.fish, meat: it.meat, ch: it.ch, sec: secKey(it), single: secSingleOf(it)}, U, match: res && {sc: res.sc, inName: res.inName, inSec: res.inSec, comp: res.comp, dTerm: res.dTerm}}); return; } }
+  const slow = /\s#slow$/.test(q) && (location.protocol === 'file:' || /^(localhost|127\.)/.test(location.hostname));
+  q = q.replace(/\s#slow$/, '');
   resState.q = q; resState.expanded = {}; resState.showComp = false;
+  const parts = splitConjunction(q);
   const s = settings();
-  if (!s.key) { resState.source = 'einfache Wortsuche'; resState.res = searchAll(q, null); renderResults(); return; }
-  $('#answer').innerHTML = `<div class="result"><div class="think"><span class="spinner"></span>Ich durchsuche alle Speisekarten nach „${esc(q)}“ …</div></div>`;
+  if (!s.key) { resState.source = 'einfache Wortsuche'; resState.res = parts ? searchConj(parts, []) : searchAll(q, null); renderResults(); return; }
+  const started = Date.now();
+  $('#answer').innerHTML = thinkHtml(q);
+  const think = startThink(q);
   aiBusy = true;
   try {
-    const ai = await aiTerms(q);
+    if (slow) await new Promise(r => setTimeout(r, 6000));
+    const ais = parts ? await Promise.all(parts.map(p => aiTerms(p))) : [await aiTerms(q)];
     resState.source = 'mit KI erweitert';
-    resState.res = searchAll(q, ai);
+    resState.res = parts ? searchConj(parts, ais) : searchAll(q, ais[0]);
   } catch (err) {
     if (err.message !== 'NOKEY') console.warn('KI-Fehler:', err.message);
     resState.source = err.message === 'NOKEY' ? 'einfache Wortsuche' : 'einfache Wortsuche (KI nicht erreichbar)';
-    resState.res = searchAll(q, null);
+    resState.res = parts ? searchConj(parts, []) : searchAll(q, null);
   } finally { aiBusy = false; }
+  const wait = 1100 - (Date.now() - started);
+  if (wait > 0) await new Promise(r => setTimeout(r, wait));
+  if (seq !== undefined && seq !== searchSeq) { stopThink(think); return; } // inzwischen wurde etwas Neues gesucht
+  stopThink(think);
   renderResults();
 }
-$('#askform').addEventListener('submit', e => { e.preventDefault(); const q = $('#ask').value.trim(); if (!q || aiBusy) return; $('#ask').blur(); doSearch(q); setTimeout(()=>$('#answer').scrollIntoView({block:'start', behavior:'smooth'}), 60); });
+/* ---- Lade-Animation: Speisekarten-Scanner – echte Lokale, echte Gerichte, Lu-Check ---- */
+let THINK_POOL = null;
+function thinkPool(){
+  if (THINK_POOL) return THINK_POOL;
+  const nm = it => dn(it).replace(/\s*\(.*$/, '').replace(/\s+[–-]\s.*$/, '').trim();
+  const good = s => s.length >= 3 && s.length <= 28;
+  THINK_POOL = R.filter(r => r.menu.length >= 4).map(r => ({
+    name: (r.name || '').replace(/\s*\(.*$/, '').trim(),
+    ok: r.menu.filter(it => (it.lu === 'safe' || it.lu === 'mozz') && !it.side && !it.drink && !it.extra).map(nm).filter(good),
+    no: r.menu.filter(it => it.lu !== 'safe' && it.lu !== 'mozz' && !it.side && !it.drink && !it.extra).map(nm).filter(good)
+  })).filter(e => e.name && e.ok.length + e.no.length >= 4);
+  if (!THINK_POOL.length) THINK_POOL = [{name: 'Taverna', ok: ['Gemista', 'Briam', 'Falafel'], no: ['Souvlaki']}];
+  return THINK_POOL;
+}
+const pickN = (arr, n) => { const a = arr.slice(), out = []; while (a.length && out.length < n) out.push(a.splice(Math.floor(Math.random() * a.length), 1)[0]); return out; };
+function thinkCard(e){
+  const nOk = Math.min(e.ok.length, 2 + Math.floor(Math.random() * 2));
+  const lines = pickN(e.ok, nOk).map(t => [t, 1]).concat(pickN(e.no, 4 - nOk).map(t => [t, 0]));
+  while (lines.length < 4 && e.ok.length > nOk) lines.push([e.ok[lines.length % e.ok.length], 1]);
+  for (let i = lines.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [lines[i], lines[j]] = [lines[j], lines[i]]; }
+  return `<div class="mname">${esc(e.name)}</div>` + lines.slice(0, 4).map(([t, ok]) => `<div class="ml" data-ok="${ok}"><span class="mt">${esc(t)}</span><span class="mdots"></span><span class="mk"></span></div>`).join('');
+}
+const thinkStats = q => [`Ich lese ${R.filter(r => r.menu.length).length} Speisekarten …`, `Vergleiche ${R.reduce((n,r)=>n+r.menu.length,0).toLocaleString('de-DE')} Gerichte …`, 'Prüfe, was Lu essen kann …', 'Sortiere nach Entfernung …'];
+function thinkHtml(q){
+  const N = R.filter(r => r.menu.length).length;
+  return `<div class="result"><div class="think2">
+    <div class="stage" id="thinkStage" aria-hidden="true"><div class="mcard c3"></div><div class="mcard c2"></div><div class="mcard c1" id="thinkCard"></div><div class="lens" id="thinkLens"></div></div>
+    <div class="tq">„${esc(q)}“</div>
+    <div class="tcount" id="thinkCount" aria-hidden="true">Speisekarte 1 von ${N}</div>
+    <div class="tstat" id="thinkStat" role="status" aria-live="polite">${esc(thinkStats(q)[0])}</div>
+    <div class="tbar" aria-hidden="true"><i id="thinkBar"></i></div></div></div>`;
+}
+function startThink(q){
+  const pool = thinkPool(), N = R.filter(r => r.menu.length).length, stats = thinkStats(q || '');
+  const order = pool.map((_, i) => i); for (let i = order.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [order[i], order[j]] = [order[j], order[i]]; }
+  let idx = 0, si = 0, alive = true; const timers = []; const t0 = Date.now();
+  const placeLens = el => { const lens = $('#thinkLens'), st = $('#thinkStage'); if (!el || !lens || !st) return; const sr = st.getBoundingClientRect(), r = el.getBoundingClientRect(); lens.style.transform = `translate(${(r.left + r.width / 2 - sr.left - 17).toFixed(1)}px, ${(r.top + r.height / 2 - sr.top - 17).toFixed(1)}px)`; };
+  const later = (fn, ms) => timers.push(setTimeout(() => { if (alive) fn(); }, ms));
+  const deal = () => {
+    const card = $('#thinkCard'); if (!card) return;
+    const e = pool[order[idx % order.length]]; idx++;
+    card.classList.remove('out', 'c1'); card.innerHTML = thinkCard(e); void card.offsetWidth; card.classList.add('c1');
+    const cnt = $('#thinkCount'); if (cnt) cnt.textContent = `Speisekarte ${Math.min(idx, N - 1)} von ${N}`;
+    const lines = [...card.querySelectorAll('.ml')];
+    lines.forEach((ln, k) => later(() => { lines.forEach(x => x.classList.remove('scan')); ln.classList.add('scan', ln.dataset.ok === '1' ? 'ok' : 'no'); placeLens(ln.querySelector('.mk')); }, 160 + k * 210));
+    const end = 160 + lines.length * 210 + 240;
+    later(() => card.classList.add('out'), end);
+    later(deal, end + 330);
+  };
+  deal();
+  const bar = setInterval(() => { const el = $('#thinkBar'); if (!el) return; const p = 1 - Math.exp(-(Date.now() - t0) / 2400); el.style.width = (4 + 88 * p).toFixed(1) + '%'; }, 120);
+  const stat = setInterval(() => { const el = $('#thinkStat'); if (!el) return; si = (si + 1) % stats.length; el.classList.remove('in'); void el.offsetWidth; el.textContent = stats[si]; el.classList.add('in'); }, 1900);
+  return { stop(){ alive = false; timers.forEach(clearTimeout); clearInterval(bar); clearInterval(stat); const el = $('#thinkBar'); if (el) el.style.width = '100%'; } };
+}
+function stopThink(t){ if (t && t.stop) t.stop(); }
+$('#askform').addEventListener('submit', e => { e.preventDefault(); const q = $('#ask').value.trim(); if (!q) return; $('#ask').blur(); doSearch(q); setTimeout(()=>$('#answer').scrollIntoView({block:'start', behavior:'smooth'}), 60); });
 $('#ask').addEventListener('keydown', e => { if (e.key==='Enter' && !e.shiftKey) { e.preventDefault(); $('#askform').requestSubmit(); } });
 $('#examples').addEventListener('click', e => { const b = e.target.closest('[data-ex]'); if (!b) return; $('#ask').value = b.dataset.ex; $('#askform').requestSubmit(); });
 
