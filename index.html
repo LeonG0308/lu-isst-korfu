@@ -828,6 +828,9 @@ function understandLocal(q){
     const kind = (INGREDIENT_WORDS.has(w) || INGREDIENT_WORDS.has(base) || ingredientNext.has(w) || (i > 0 && ingredientNext.has(words[words.length-1]) && w === expanded[expanded.length-1])) ? 'ingredient' : 'dish';
     concepts.push({kind, terms:[...s], label: w, known: KNOWN(w)});
   }
+  // Unbekanntes Wort neben einem bekannten Gericht ("Oreo Crêpe", "Bueno Crêpes") ist meist Belag/Sorte → auch in der Beschreibung suchen
+  const dishy = concepts.filter(c => c.kind === 'dish' || c.kind === 'ingredient');
+  if (dishy.length >= 2 && dishy.some(c => c.known)) dishy.forEach(c => { if (c.kind === 'dish' && !c.known && !c.phrase) c.kind = 'ingredient'; });
   return {concepts, exclude, vague: concepts.length === 0 || concepts.every(c => c.kind === 'attribute' && ['light','warm','cold'].includes(c.attr)), words: wordsAll};
 }
 /* KI-Antwort in dieselbe Struktur bringen; eigene Synonyme dazu, damit nichts verloren geht */
@@ -885,8 +888,12 @@ function understandAI(q, ai){
       const MOD2 = /^(grilled|grill|baked|fried|roasted|stuffed|braised|crispy|caramelized|caramelised|sauteed|sautéed|fresh|homemade|gegrillt\w*|gebacken\w*|frittiert\w*|gebraten\w*|geschmort\w*|gefuellt\w*|geroestet\w*|roest\w*|knusprig\w*|frisch\w*)$/;
       // "Zubereitung + Zutat" ("fried onions") ist eine Zutat, kein Gericht
       const modIngr = t => { const p = t.split(/\s+/); return p.length >= 2 && MOD2.test(p[0]) && ingr(p[p.length - 1]); };
-      const foreign = t => KNOWN(t) || synValues().has(t) || synValues().has(stem(t)) || ingr(t) || modIngr(t) || GEN2.test(t) || others.some(o => t.includes(o));
-      a.terms.forEach(t => { if (!w || near(t) || !foreign(t)) { if (!m.terms.includes(t)) m.terms.push(t); } });
+      // Vokabel eines anderen Konzepts, auch mit kleiner Endung (bifteki → biftekia, burger → burgers)
+      const synNear = t => { for (const v of synValues()) { if (v === t || (t.startsWith(v) && t.length - v.length <= 2) || (v.startsWith(t) && v.length - t.length <= 2)) return true; } return false; };
+      const foreign = t => KNOWN(t) || synNear(t) || ingr(t) || modIngr(t) || GEN2.test(t) || others.some(o => t.includes(o));
+      // bekannte Wörter und feste Namen haben gepflegte Synonyme: die KI darf dort nur Schreibvarianten beisteuern
+      const strict = !!(m.known || m.phrase);
+      a.terms.forEach(t => { if (!w || near(t) || (!strict && !foreign(t))) { if (!m.terms.includes(t)) m.terms.push(t); } });
       if (m.kind === 'dish' && a.kind === 'ingredient' && !m.phrase) m.kind = 'ingredient';
       if (a.phrase) { m.phrase = true; m.kind = 'dish'; }
     }
@@ -1154,7 +1161,7 @@ function settings(){ const own = LS.get('lc_key',''); return { key: own || embed
 const TERMS_SYS = `Du zerlegst eine frei getippte Essens-Anfrage (meist Deutsch, manchmal Englisch, oft umgangssprachlich oder mit Tippfehlern) in Suchkonzepte für Speisekarten von Restaurants auf Korfu. Die Karten sind auf Englisch (Originalname) und Deutsch erfasst; griechische Gerichte stehen in Umschrift (gemista, briam, fasolakia, skordalia, souvlaki …).
 
 Jedes Konzept muss ein Gericht ERFÜLLEN (UND-Verknüpfung). Konzeptarten:
-- "dish": ein Gerichtstyp (Burger, Pizza, Suppe, Kartoffelbrei, Salat, Risotto, Crêpe). Gib 5–15 gleichwertige Begriffe: deutsch, englisch, griechische Umschrift, Schreibvarianten, typische Untertypen. Beispiel Burger → ["burger","hamburger","cheeseburger","veggie burger","vegan burger","bean burger","falafel burger","halloumi burger","bifteki"]. Kartoffelbrei → ["mashed potato","mashed potatoes","potato puree","potato mash","kartoffelpüree","kartoffelbrei","skordalia"].
+- "dish": ein Gerichtstyp (Burger, Pizza, Suppe, Kartoffelbrei, Salat, Risotto, Crêpe). Gib 3–10 Begriffe, die GENAU DASSELBE bezeichnen: deutsch, englisch, griechische Umschrift, Schreibvarianten (Singular/Plural). KEINE Untertypen, keine ähnlichen Gerichte, keine Zutaten, keine Oberbegriffe. Beispiel Burger → ["burger","burgers","hamburger"]. Kartoffelbrei → ["mashed potato","mashed potatoes","potato puree","potato mash","kartoffelpüree","kartoffelbrei","skordalia"]. T-Bone Steak → ["t-bone steak","t-bone","tbone"] (nicht "steak", nicht "bifteki"). Zwiebelringe → ["onion rings","zwiebelringe"] (nicht "onion").
 - "ingredient": eine Zutat, die im Gericht vorkommen soll (Pilze, Aubergine, Tomate, Kichererbsen). Begriffe wie bei dish (Pilze → ["mushroom","mushrooms","pilze","champignons","funghi","manitaria"]).
 - "attribute": eine Eigenschaft, keine Wortsuche. attr ∈ vegetarian | vegan | cheese_free | sweet | drink | spicy | light | warm | cold. "vegetarisch/veggie/fleischlos" → vegetarian. "ohne Käse/käsefrei" → cheese_free. "was Süßes/Dessert/Nachtisch" → sweet. "was Leichtes" → light.
 - "cuisine": eine Landesküche oder Lokaltyp (indisch, griechisch, italienisch, mexikanisch, asiatisch, britisch/Pub, Café/Eisdiele, Bar). label = deutsches Wort.
@@ -1165,7 +1172,7 @@ Regeln:
 - "was Süßes", "Nachtisch", "Dessert" → attribute sweet (keine Wortliste). "Kaffee", "Bier", "Cocktail" → dish mit den Getränkebegriffen, vague=false.
 - Ein Gericht, das selbst ein fester Name ist (Gemista, Moussaka, Falafel, Hummus, Baklava, Souvlaki), ist ein dish mit seinen Schreibvarianten.
 - Nur Begriffe für DASSELBE Gericht – keine verwandten anderen Gerichte (Gyros ≠ Souvlaki, Pizza ≠ Pasta, Kuchen ≠ Eis). Lieber weniger Begriffe als falsche.
-- Wörter wie Hauptgericht/Gericht/Essen sind kein dish, sondern attribute "warm" oder werden weggelassen; "vegetarisch/vegan/ohne Käse" sind immer attribute. Mahlzeiten wie Frühstück, Brunch, Snack sind dagegen ein dish ("Frühstück" → ["breakfast","frühstück","omelette","pancakes","eggs","toast","yogurt"]).
+- Wörter wie Hauptgericht/Gericht/Essen sind kein dish, sondern attribute "warm" oder werden weggelassen; "vegetarisch/vegan/ohne Käse" sind immer attribute. Mahlzeiten wie Frühstück, Brunch, Snack sind dagegen ein dish ("Frühstück" → ["breakfast","frühstück","english breakfast"]).
 - Spezifisch bleibt spezifisch: "Spaghetti" → nur Spaghetti-Schreibweisen, nicht "pasta"; "Kartoffelbrei" → nicht "potato". Oberbegriffe nur, wenn der Nutzer sie selbst nennt.
 - "ohne X" bei Fleisch/Fisch → exclude mit den Begriffen; bei Käse → attribute cheese_free.
 - vague = true nur, wenn kein konkretes Gericht/Zutat/Küche genannt ist ("was Gutes", "irgendwas Leichtes").
